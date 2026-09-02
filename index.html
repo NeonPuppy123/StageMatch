@@ -1,0 +1,1695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>StageMatch — Find Your Musical</title>
+<style>
+  :root{
+    --bg:#faf8ff; --card:#fff; --ink:#241d35; --muted:#6f667c;
+    --accent:#7047d9; --accent2:#e9e1ff; --line:#e8e1ef;
+    --good:#25734d; --bad:#a34b45;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--bg);color:var(--ink)}
+  nav{height:70px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 7%;position:sticky;top:0;z-index:10}
+  .logo{font-weight:900;font-size:22px;letter-spacing:-.5px}.logo span{color:var(--accent)}
+  nav button{border:0;background:none;color:var(--muted);font-weight:700;margin-left:18px;cursor:pointer}
+  nav button:hover{color:var(--accent)}
+  .hero{padding:80px 7% 65px;background:linear-gradient(135deg,#f2edff,#fff 55%,#f8eefe);text-align:center}
+  .pill{display:inline-block;background:var(--accent2);color:var(--accent);padding:7px 12px;border-radius:999px;font-weight:800;font-size:13px}
+  h1{font-size:clamp(42px,7vw,72px);line-height:.98;letter-spacing:-3px;margin:18px auto;max-width:800px}
+  .hero p{max-width:650px;margin:0 auto 28px;color:var(--muted);font-size:18px;line-height:1.6}
+  .cta{background:var(--accent);color:white;border:0;border-radius:14px;padding:14px 21px;font-size:16px;font-weight:850;cursor:pointer;box-shadow:0 8px 25px #7047d933}
+  .section{padding:55px 7%;max-width:1250px;margin:auto}
+  .section h2{font-size:32px;margin:0 0 8px;letter-spacing:-1px}.sub{color:var(--muted);margin:0 0 25px}
+  .toolbar{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:24px}
+  input,select{border:1px solid var(--line);background:white;border-radius:12px;padding:12px 14px;font-size:15px;outline:none}
+  input{min-width:240px;flex:1}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:22px;box-shadow:0 8px 30px #27143d08;cursor:pointer;transition:.2s}
+  .card:hover{transform:translateY(-3px);box-shadow:0 12px 35px #27143d12}
+  .cover{height:125px;border-radius:14px;background:linear-gradient(135deg,#7047d9,#b28cff);display:flex;align-items:center;justify-content:center;color:white;font-size:28px;font-weight:900;margin-bottom:17px}
+  .card h3{margin:0 0 7px;font-size:21px}.meta{color:var(--muted);font-size:13px}
+  .tags{display:flex;gap:6px;flex-wrap:wrap;margin-top:14px}.tag{background:#f2eef7;padding:6px 9px;border-radius:999px;font-size:12px;font-weight:700;color:#5d5367}
+  .rating{margin-top:15px;font-weight:850;color:var(--accent)}
+  .feature{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px;margin-top:25px}
+  .feature div{background:white;border:1px solid var(--line);border-radius:18px;padding:22px}.feature strong{display:block;margin-bottom:8px;font-size:17px}.feature p{color:var(--muted);line-height:1.5;margin:0}
+  .quiz{background:#241d35;color:white;border-radius:28px;padding:38px}
+  .quiz h2{color:white}.quiz p{color:#d9d0e5}.question{margin:24px 0}.question h3{margin-bottom:12px}
+  .options{display:flex;flex-wrap:wrap;gap:9px}.option{border:1px solid #625575;background:#332b43;color:white;padding:10px 13px;border-radius:12px;cursor:pointer}.option.selected{background:#8a63eb;border-color:#a98af5}
+  .results{margin-top:25px;background:#fff;color:var(--ink);border-radius:18px;padding:22px;display:none}
+  footer{padding:35px 7%;color:var(--muted);text-align:center;font-size:13px}
+  .modal{position:fixed;inset:0;background:#17121dcc;display:none;align-items:center;justify-content:center;padding:20px;z-index:20}
+  .modalbox{background:white;max-width:720px;width:100%;max-height:90vh;overflow:auto;border-radius:24px;padding:30px;position:relative}
+
+
+  .account-wrap{background:linear-gradient(135deg,#eee7ff,#fff);border:1px solid var(--line);border-radius:28px;padding:35px}
+  .account-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:24px}
+  .account-grid div{background:#fff;border:1px solid var(--line);border-radius:16px;padding:17px}
+  .account-grid b{display:block;margin-bottom:6px}.account-grid span{color:var(--muted);font-size:13px;line-height:1.4}
+  .quiz-note{background:#f7f3ff;border-radius:14px;padding:12px 14px;color:#5d5367;font-size:13px;margin-bottom:20px}
+  .result-card{border:1px solid var(--line);border-radius:14px;padding:15px;margin:10px 0;background:#fff}
+  .matchbar{height:8px;background:#eee8f5;border-radius:99px;overflow:hidden;margin:8px 0}.matchbar span{display:block;height:100%;background:var(--accent);border-radius:99px}
+  .result-card small{color:var(--muted)}
+  @media(max-width:750px){.account-grid{grid-template-columns:1fr 1fr}}
+  @media(max-width:500px){.account-grid{grid-template-columns:1fr}}
+  .mini-stats{display:flex;gap:7px;flex-wrap:wrap;margin-top:13px}.mini-stats span{font-size:11px;background:#f7f3fa;border:1px solid var(--line);padding:5px 7px;border-radius:8px;color:#5d5367}
+  .lead{font-size:16px;line-height:1.65;color:#4f4659}.score-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:20px 0}
+  .score-grid div{background:#f7f4fa;border-radius:13px;padding:12px}.score-grid b{display:block;font-size:12px;color:var(--muted);margin-bottom:4px}.score-grid span{font-weight:800;font-size:14px}
+  .detail-box{background:#f8f5fb;border-radius:15px;padding:16px;margin:14px 0}.detail-box p{line-height:1.55;color:#51495a}.link-btn{border:0;background:#e9e1ff;color:var(--accent);font-weight:800;padding:7px 10px;border-radius:9px;margin:3px;cursor:pointer}
+  .close{position:absolute;right:18px;top:14px;border:0;background:#f0ebf4;border-radius:50%;width:35px;height:35px;cursor:pointer;font-size:20px}
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}.good,.bad{padding:16px;border-radius:15px}.good{background:#edf8f1}.bad{background:#fff0ef}
+  .trade{background:#f5f1ff;border-radius:16px;padding:17px;margin:15px 0}.trade b{color:var(--accent)}
+  @media(max-width:650px){nav{padding:0 4%}.section{padding:42px 5%}.hero{padding:65px 5% 50px}.cols{grid-template-columns:1fr}}
+</style>
+
+<style>
+.sm-modal{display:none;position:fixed;inset:0;background:rgba(20,15,30,.55);align-items:center;justify-content:center;z-index:10000}
+.sm-login-box{position:relative;background:#fff;border-radius:24px;padding:32px;width:min(430px,86vw);box-shadow:0 25px 70px rgba(0,0,0,.25)}
+.sm-login-box h2{margin:12px 0 8px}
+.sm-login-box p{color:#666;line-height:1.5}
+.sm-login-box input{box-sizing:border-box;width:100%;padding:13px 14px;border:1px solid #ddd;border-radius:10px;font-size:16px;margin:12px 0}
+.sm-login-box .cta{width:100%;margin-bottom:12px}
+.sm-login-box small{color:#777;display:block;line-height:1.4}
+.sm-close{position:absolute;right:13px;top:9px;border:0;background:none;font-size:30px;cursor:pointer}
+</style>
+
+</head>
+<body>
+<nav>
+  <div class="logo">Stage<span>Match</span> 🎭</div>
+  <div>
+    <button onclick="scrollToId('browse')">Browse</button>
+    <button onclick="scrollToId('quiz')">Quiz</button><button onclick="scrollToId('account')">My Profile</button>
+    <button id="loginBtn" onclick="showLogin()">Log In</button>
+  </div>
+</nav>
+
+<header class="hero">
+  <span class="pill">A smarter way to choose a musical</span>
+  <h1>Find a show you'll actually love.</h1>
+  <p>Explore musicals by what matters to you — story, music, emotion, performance difficulty, energy, and more. Then see the trade-offs before you decide.</p>
+  <button class="cta" onclick="scrollToId('quiz')">Find My Musical →</button>
+</header>
+
+<section class="section" id="browse">
+  <h2>Explore musicals <span id="catalogCount" style="font-size:14px;font-weight:800;color:var(--accent);vertical-align:middle;margin-left:8px"></span></h2>
+  <p class="sub">Every show gets the same easy-to-compare Musical Match Report.</p>
+  <div class="toolbar">
+    <input id="search" placeholder="Search musicals..." oninput="renderCards()">
+    <select id="filter" onchange="renderCards()">
+      <option value="">All types</option><option>Emotional</option><option>Funny</option><option>High Energy</option><option>Dance Heavy</option><option>Vocally Challenging</option>
+    </select>
+  </div>
+  <div class="grid" id="cards"></div>
+</section>
+
+<section class="section">
+  <h2>Your Musical Match Report</h2>
+  <p class="sub">Not just a rating — a quick picture of what you're getting.</p>
+  <div class="feature">
+    <div><strong>⚖️ Trade-Offs</strong><p>See what you gain from a show and what you may be giving up.</p></div>
+    <div><strong>🎤 Performance</strong><p>Understand vocal and acting difficulty before choosing a show.</p></div>
+    <div><strong>🎭 Fit</strong><p>Know who is likely to love a show — and who might not.</p></div>
+    <div><strong>🔎 Discover</strong><p>Compare shows by themes, moods, roles, and interests.</p></div>
+  </div>
+</section>
+
+<section class="section" id="quiz">
+  <div class="quiz">
+    <span class="pill">15-QUESTION MATCH</span>
+    <h2>Find Your Musical</h2>
+    <p>There isn't one "best" musical. This quiz figures out what fits <i>you</i> — and explains the trade-offs.</p>
+    <div class="quiz-note">💡 You can browse without an account. Logging in simply lets StageMatch remember your quiz and saved shows.</div>
+
+    <div class="question"><h3>1. What matters most to you?</h3><div class="options" data-q="priority">
+      <button class="option" data-v="story">Story</button><button class="option" data-v="music">Music</button><button class="option" data-v="characters">Characters</button><button class="option" data-v="spectacle">Spectacle</button></div></div>
+
+    <div class="question"><h3>2. How funny should it be?</h3><div class="options" data-q="humor">
+      <button class="option" data-v="low">Mostly serious</button><button class="option" data-v="medium">A mix</button><button class="option" data-v="high">Very funny</button></div></div>
+
+    <div class="question"><h3>3. How emotional do you want it?</h3><div class="options" data-q="emotion">
+      <button class="option" data-v="low">Keep it light</button><button class="option" data-v="medium">Some emotion</button><button class="option" data-v="high">Make me cry</button></div></div>
+
+    <div class="question"><h3>4. What kind of music sounds best?</h3><div class="options" data-q="music">
+      <button class="option" data-v="classic">Classic Broadway</button><button class="option" data-v="pop">Pop</button><button class="option" data-v="rock">Rock</button><button class="option" data-v="hiphop">Hip-hop / rap</button><button class="option" data-v="unique">Something unusual</button></div></div>
+
+    <div class="question"><h3>5. How much dancing do you want?</h3><div class="options" data-q="dance">
+      <button class="option" data-v="low">Not much</button><button class="option" data-v="medium">Some</button><button class="option" data-v="high">Lots!</button></div></div>
+
+    <div class="question"><h3>6. How difficult should the vocals be?</h3><div class="options" data-q="vocal">
+      <button class="option" data-v="low">Beginner-friendly</button><button class="option" data-v="medium">Some challenge</button><button class="option" data-v="high">Very challenging</button></div></div>
+
+    <div class="question"><h3>7. What energy level sounds best?</h3><div class="options" data-q="energy">
+      <button class="option" data-v="low">Calm</button><button class="option" data-v="medium">Moderate</button><button class="option" data-v="high">Go all out</button></div></div>
+
+    <div class="question"><h3>8. What kind of world?</h3><div class="options" data-q="world">
+      <button class="option" data-v="real">Realistic</button><button class="option" data-v="history">Historical</button><button class="option" data-v="fantasy">Fantasy</button><button class="option" data-v="supernatural">Supernatural / unusual</button></div></div>
+
+    <div class="question"><h3>9. How important is romance?</h3><div class="options" data-q="romance">
+      <button class="option" data-v="low">Not important</button><button class="option" data-v="medium">Nice to have</button><button class="option" data-v="high">Very important</button></div></div>
+
+    <div class="question"><h3>10. What kind of characters do you prefer?</h3><div class="options" data-q="characters">
+      <button class="option" data-v="ensemble">Lots of characters</button><button class="option" data-v="lead">One standout lead</button><button class="option" data-v="group">Small group</button><button class="option" data-v="young">Young characters</button></div></div>
+
+    <div class="question"><h3>11. What kind of story?</h3><div class="options" data-q="story">
+      <button class="option" data-v="feelgood">Feel-good</button><button class="option" data-v="deep">Deep / thought-provoking</button><button class="option" data-v="adventure">Adventure</button><button class="option" data-v="romantic">Romantic</button></div></div>
+
+    <div class="question"><h3>12. How much spectacle?</h3><div class="options" data-q="spectacle">
+      <button class="option" data-v="low">Intimate</button><button class="option" data-v="medium">A balance</button><button class="option" data-v="high">Huge!</button></div></div>
+
+    <div class="question"><h3>13. Are you choosing to watch or perform?</h3><div class="options" data-q="purpose">
+      <button class="option" data-v="watch">Watch it</button><button class="option" data-v="perform">Perform it</button><button class="option" data-v="both">Both</button></div></div>
+
+    <div class="question"><h3>14. What production size appeals to you?</h3><div class="options" data-q="cast">
+      <button class="option" data-v="small">Small</button><button class="option" data-v="medium">Medium</button><button class="option" data-v="large">Large</button><button class="option" data-v="any">Doesn't matter</button></div></div>
+
+    <div class="question"><h3>15. Pick a vibe.</h3><div class="options" data-q="vibe">
+      <button class="option" data-v="bright">Bright & colorful</button><button class="option" data-v="dark">Dark & strange</button><button class="option" data-v="epic">Epic</button><button class="option" data-v="warm">Warm & heartfelt</button><button class="option" data-v="modern">Modern & cool</button></div></div>
+
+    <button class="cta" onclick="quizResult()">Show My Matches →</button>
+    <div class="results" id="results"></div>
+  </div>
+</section>
+
+<section class="section" id="account">
+  <div class="account-wrap">
+    <div>
+      <span class="pill">OPTIONAL ACCOUNT</span>
+      <h2>Your StageMatch profile</h2>
+      <p class="sub">Logging in makes the site remember your journey. No account is needed to browse or take the quiz.</p>
+    </div>
+    <div class="account-grid" id="profileDashboard">
+      <div class="profile-card" onclick="showProfileList('favorites')"><b>⭐ Favorites <span id="favCount">0</span></b><span id="favPreview">Save shows you love.</span></div>
+      <div class="profile-card" onclick="showProfileList('want')"><b>🎟️ Want to See <span id="wantCount">0</span></b><span id="wantPreview">Build your watchlist.</span></div>
+      <div class="profile-card" onclick="showProfileList('seen')"><b>✅ Seen <span id="seenCount">0</span></b><span id="seenPreview">Track shows you've watched or performed.</span></div>
+      <div class="profile-card" onclick="showSavedQuiz()"><b>🧠 Saved Quiz</b><span id="quizPreview">No quiz saved yet.</span></div>
+      <div class="profile-card"><b>📊 Musical Profile</b><span id="profileSummary">Log in and start exploring.</span></div>
+      <div class="profile-card" onclick="showProfileList('notes')"><b>📝 Private Notes <span id="noteCount">0</span></b><span id="notePreview">Add notes from any musical report.</span></div>
+    </div>
+    <div id="profileOutput" class="detail-box" style="display:none;margin-top:20px"></div>
+  </div>
+</section>
+
+<footer>StageMatch — prototype • Built as a passion-project starting point</footer>
+
+<div class="modal" id="modal" onclick="if(event.target===this)closeModal()">
+  <div class="modalbox">
+    <button class="close" onclick="closeModal()">×</button>
+    <div id="modalContent"></div>
+  </div>
+</div>
+
+<script>
+const shows=[
+ {name:"Wicked",creator:"Stephen Schwartz",tags:["Emotional","High Energy","Vocally Challenging"],score:94,
+  summary:"A fantasy musical about friendship, identity, power, and the complicated line between good and evil, told from an unexpected perspective in Oz. The story centers on Elphaba and Glinda as their friendship changes alongside the politics of Oz. It explores how public opinion, power, and prejudice can turn complicated people into simple heroes or villains.",
+  good:["Powerful lead roles","Big emotional payoff","Memorable score","Strong character arcs","Excellent mix of humor and drama"],
+  bad:["Some lead vocals are demanding","Large production can be complicated","The story becomes heavier as it progresses"],
+  gain:"Big emotional moments, memorable music, strong characters",
+  lose:"Simplicity and a consistently light tone",
+  vocal:"Advanced",acting:"Intermediate",dance:"Low",energy:"High",emotion:"High",humor:"Medium",
+  themes:"Friendship • Identity • Power • Reputation • Prejudice",
+  fit:"People who love emotional stories, strong characters, big theatrical moments, and memorable Broadway music.",
+  notfit:"People looking for a very simple story, mostly comedy, or easy lead vocals.",
+  similar:["Matilda","Six","The Lion King"]},
+
+ {name:"Hamilton",creator:"Lin-Manuel Miranda",tags:["High Energy","Vocally Challenging"],score:91,
+  summary:"A fast-moving musical about Alexander Hamilton and the people, relationships, and political conflicts surrounding the founding of the United States. The story follows Hamilton through the American Revolution, the creation of the new government, political rivalries, and the relationships that shape his private life. It is as interested in legacy and personal choices as it is in historical events.",
+  good:["Exceptional storytelling","Very energetic score","Complex characters","Distinct musical styles","Unusually dense writing"],
+  bad:["Very dense lyrics","Fast delivery can be challenging","Serious subject matter","Some historical events are dramatized"],
+  gain:"Speed, wordplay, history, rhythmic variety",
+  lose:"Easy-to-follow lyrics and a traditional Broadway sound",
+  vocal:"Advanced",acting:"Advanced",dance:"Medium",energy:"Very High",emotion:"High",humor:"Medium",
+  themes:"Ambition • Politics • Legacy • Relationships • Revolution",
+  fit:"People who enjoy fast storytelling, dense lyrics, history, rap/hip-hop influences, and energetic performances.",
+  notfit:"People who dislike rapid lyrics, historical stories, or shows that demand close attention.",
+  similar:["Six","In the Heights","Newsies"]},
+
+ {name:"Matilda",creator:"Tim Minchin",tags:["Funny","Emotional"],score:89,
+  summary:"A clever child finds strength through stories, imagination, friendship, and standing up to unfair adults. Matilda finds an ally in her teacher Miss Honey and friends who help her feel understood. The conflict with Miss Trunchbull gives the story its biggest comic and dramatic moments while the home and school storylines come together.",
+  good:["Funny and heartfelt","Great young roles","Strong storytelling","Memorable characters","Balances darkness with humor"],
+  bad:["Some darker moments","Requires strong child performers","Less romantic focus","Some roles have demanding character work"],
+  gain:"Humor, heart, accessible storytelling",
+  lose:"Huge spectacle and the most intense vocal demands",
+  vocal:"Intermediate",acting:"Intermediate",dance:"Medium",energy:"Medium",emotion:"High",humor:"High",
+  themes:"Courage • Imagination • Family • Justice • Education",
+  fit:"People who want humor and emotion, clever storytelling, and a show with strong young characters.",
+  notfit:"People wanting romance, a giant spectacle, or a very adult-centered story.",
+  similar:["Annie","Billy Elliot","The Addams Family"]},
+
+ {name:"The Greatest Showman",creator:"Various",tags:["High Energy","Emotional"],score:84,
+  summary:"A fictionalized musical-film story inspired by P. T. Barnum and centered on ambition, belonging, family, and creating a spectacular show. The story follows the creation and growth of the show as Barnum searches for success and recognition. His choices create both exciting opportunities and conflicts involving his family, performers, fame, and the people he wants to impress.",
+  good:["Huge musical moments","Accessible songs","Strong visual energy","Uplifting tone","Easy-to-recognize music"],
+  bad:["Historical accuracy is limited","Story is relatively straightforward","It is a film musical rather than a stage musical","Some character development is simplified"],
+  gain:"Spectacle, catchy music, uplifting energy",
+  lose:"Complex stage-musical storytelling and historical accuracy",
+  vocal:"Intermediate",acting:"Intermediate",dance:"Medium",energy:"Very High",emotion:"High",humor:"Low",
+  themes:"Belonging • Ambition • Acceptance • Family • Dreams",
+  fit:"People who want big musical moments, catchy songs, spectacle, and an uplifting experience.",
+  notfit:"People who want historically accurate storytelling or complex stage-musical structure.",
+  similar:["Newsies","Hairspray","La La Land"]},
+
+ {name:"Six",creator:"Toby Marlow & Lucy Moss",tags:["High Energy","Vocally Challenging","Funny"],score:92,
+  summary:"The six wives of Henry VIII reclaim their stories and turn their history into a high-energy pop concert. Each queen gets a chance to tell her version of history and show how she has been reduced to a label. As the competition develops, the performers begin to question the idea that they need to compete at all.",
+  good:["Extremely energetic","Six distinct leading roles","Strong female characters","Funny","Modern musical style","Small cast"],
+  bad:["Very concert-like","Limited traditional ensemble structure","Vocals can be demanding","Some audiences may prefer a conventional plot"],
+  gain:"Energy, humor, powerful solo moments, distinct musical styles",
+  lose:"A traditional large-scale musical structure and conventional narrative",
+  vocal:"Advanced",acting:"Intermediate",dance:"High",energy:"Very High",emotion:"Medium",humor:"High",
+  themes:"Identity • History • Empowerment • Competition • Relationships",
+  fit:"People who love pop concerts, strong female roles, humor, choreography, and high energy.",
+  notfit:"People who want a traditional book musical with a large ensemble and conventional plot.",
+  similar:["Hamilton","Mean Girls","& Juliet"]},
+
+ {name:"The Lion King",creator:"Elton John & Hans Zimmer",tags:["Emotional","High Energy","Dance Heavy"],score:93,
+  summary:"A young lion must grow into his role and face responsibility, loss, friendship, and family. Simba grows from a playful cub into someone who has to make difficult choices about responsibility. His relationships with his family and friends drive the emotional journey from loss and escape toward returning home.",
+  good:["Spectacular visual storytelling","Powerful music","Strong ensemble work","Memorable characters","Excellent choreography"],
+  bad:["Large production requirements","Some roles require specialized performance skills","Story may feel familiar"],
+  gain:"Spectacle, music, movement, emotional storytelling",
+  lose:"A simple production and small-scale staging",
+  vocal:"Intermediate",acting:"Intermediate",dance:"Advanced",energy:"High",emotion:"High",humor:"Medium",
+  themes:"Family • Responsibility • Loss • Courage • Growing Up",
+  fit:"People who love visual spectacle, dance, emotional stories, and strong ensemble performances.",
+  notfit:"Small groups without production resources or people wanting a very dialogue-heavy show.",
+  similar:["Wicked","Aladdin","Beauty and the Beast"]},
+
+ {name:"Hairspray",creator:"Marc Shaiman & Scott Wittman",tags:["Funny","High Energy","Dance Heavy"],score:90,
+  summary:"A determined teenager pursues her dream of dancing on television while challenging discrimination and fighting for integration. Tracy discovers that getting onto the television show is only the beginning of her challenge. Her friendships and activism bring her into conflict with people who want to keep the existing system unchanged.",
+  good:["Very funny","High-energy score","Great ensemble opportunities","Strong social themes","Dance-heavy"],
+  bad:["Requires energetic choreography","Some roles are vocally demanding","The story's social issues may need thoughtful discussion"],
+  gain:"Comedy, dancing, catchy music, ensemble energy",
+  lose:"A quiet or serious atmosphere",
+  vocal:"Intermediate",acting:"Intermediate",dance:"High",energy:"Very High",emotion:"Medium",humor:"Very High",
+  themes:"Acceptance • Equality • Friendship • Activism • Family",
+  fit:"People who want comedy, dancing, upbeat music, ensemble opportunities, and meaningful themes.",
+  notfit:"People looking for a dark drama, minimal choreography, or a small intimate cast.",
+  similar:["Mean Girls","Legally Blonde","Newsies"]},
+
+ {name:"Newsies",creator:"Alan Menken & Jack Feldman",tags:["High Energy","Dance Heavy"],score:88,
+  summary:"Young newspaper sellers organize to fight unfair treatment, discovering courage, friendship, and the power of standing together. Jack and the other newsies have to decide whether organizing is worth the risk of standing up to powerful adults. The strike becomes a story about leadership, solidarity, courage, and discovering that a group can accomplish more together.",
+  good:["Fantastic dance opportunities","Large ensemble","Energetic score","Strong friendships","Great group numbers"],
+  bad:["Dance demands can be high","Large cast works best","Some roles have demanding vocals","Historical setting may not appeal to everyone"],
+  gain:"Dance, ensemble energy, friendship, inspirational moments",
+  lose:"A small-cast or low-choreography production",
+  vocal:"Intermediate",acting:"Intermediate",dance:"Advanced",energy:"Very High",emotion:"Medium",humor:"Medium",
+  themes:"Justice • Friendship • Courage • Community • Activism",
+  fit:"Performers who love dance, ensemble numbers, energetic music, and inspirational stories.",
+  notfit:"People wanting a quiet show, romance-focused plot, or minimal choreography.",
+  similar:["Hairspray","Hamilton","Billy Elliot"]},
+
+ {name:"Mean Girls",creator:"Jeff Richmond & Nell Benjamin",tags:["Funny","High Energy"],score:87,
+  summary:"A teenager enters a new school and learns how friendships, popularity, identity, and social pressure can change people. Cady starts by trying to understand the school social scene but gradually becomes part of it. Her changing relationships force her to confront how popularity can affect the way she sees herself and treats other people.",
+  good:["Very funny","Relatable school setting","Catchy contemporary score","Strong comedic roles","Energetic ensemble"],
+  bad:["Teen social dynamics drive the story","Some humor is intentionally exaggerated","Not primarily a vocal showcase"],
+  gain:"Comedy, contemporary style, relatable characters",
+  lose:"A grand historical or fantasy spectacle",
+  vocal:"Intermediate",acting:"Intermediate",dance:"Medium",energy:"High",emotion:"Medium",humor:"Very High",
+  themes:"Friendship • Identity • Popularity • Social Pressure • Growing Up",
+  fit:"People who like comedy, contemporary music, school stories, and ensemble characters.",
+  notfit:"People wanting fantasy, historical drama, or extremely emotional storytelling.",
+  similar:["Heathers","Legally Blonde","Six"]},
+
+ {name:"Legally Blonde",creator:"Laurence O'Keefe & Nell Benjamin",tags:["Funny","High Energy","Dance Heavy"],score:89,
+  summary:"Elle Woods follows her own path into law school and discovers that being underestimated does not define what she can accomplish. Elle initially believes she has to prove herself to people who underestimate her, but she gradually discovers that her strongest motivation is building a future that belongs to her. Her friendships and successes help change how others see her as well.",
+  good:["Very funny","Energetic choreography","Strong lead role","Uplifting message","Lots of character roles"],
+  bad:["Lead requires stamina","Dance can be demanding","Comedy style is broad","Some characters are intentionally exaggerated"],
+  gain:"Comedy, confidence, dancing, upbeat music",
+  lose:"A dark or serious atmosphere",
+  vocal:"Intermediate",acting:"Intermediate",dance:"Advanced",energy:"Very High",emotion:"Medium",humor:"Very High",
+  themes:"Confidence • Determination • Friendship • Stereotypes • Self-Discovery",
+  fit:"People who want a funny, upbeat show with dancing and a strong central character.",
+  notfit:"People looking for a serious drama, slow pacing, or minimal choreography.",
+  similar:["Mean Girls","Hairspray","Legally Blonde"]},
+
+ {name:"Beetlejuice",creator:"Eddie Perfect",tags:["Funny","High Energy","Vocally Challenging"],score:90,
+  summary:"A strange ghost and a teenage girl form an unlikely connection as they navigate grief, family, and the supernatural. Lydia is trying to cope with changes at home when the supernatural world suddenly becomes part of her life. The story moves between chaotic comedy and more personal moments about grief, family, loneliness, and being understood.",
+  good:["Unique visual style","Dark comedy","Memorable character roles","Energetic score","Strong theatrical personality"],
+  bad:["Dark themes and humor","Some vocals are demanding","Not suitable for every audience","Production effects can be complicated"],
+  gain:"Dark comedy, theatrical weirdness, strong character work",
+  lose:"A gentle, traditional family-musical atmosphere",
+  vocal:"Advanced",acting:"Advanced",dance:"Medium",energy:"Very High",emotion:"High",humor:"Very High",
+  themes:"Grief • Family • Identity • Death • Belonging",
+  fit:"People who love dark comedy, unusual characters, energetic music, and theatrical spectacle.",
+  notfit:"People wanting a wholesome, calm, traditional musical.",
+  similar:["The Addams Family","Matilda","Little Shop of Horrors"]},
+
+ {name:"The Addams Family",creator:"Andrew Lippa",tags:["Funny","Emotional"],score:85,
+  summary:"The famously unusual Addams family faces change when Wednesday falls in love and wants to bring her new boyfriend home. Wednesday wants her family to accept the person she is becoming, while her parents struggle with the idea that their daughter is growing up. The dinner with her boyfriend’s family turns those tensions into a series of secrets, misunderstandings, and comic conflicts.",
+  good:["Strong comedy","Fun character roles","Distinctive visual identity","Good ensemble opportunities","Family-centered story"],
+  bad:["Comedy depends heavily on character style","Some roles are vocally demanding","Less dance-heavy than some modern shows"],
+  gain:"Comedy, character acting, quirky atmosphere",
+  lose:"A realistic or serious tone",
+  vocal:"Intermediate",acting:"Advanced",dance:"Medium",energy:"High",emotion:"Medium",humor:"Very High",
+  themes:"Family • Acceptance • Honesty • Love • Individuality",
+  fit:"People who love quirky comedy, character acting, unusual families, and ensemble roles.",
+  notfit:"People looking for realism or a serious dramatic musical.",
+  similar:["Beetlejuice","Matilda","Little Shop of Horrors"]},
+
+ {name:"Dear Evan Hansen",creator:"Benj Pasek & Justin Paul",tags:["Emotional","Vocally Challenging"],score:86,
+  summary:"A lonely teenager becomes caught in a complicated situation after a misunderstanding changes how others see him. Evan has to deal with the gap between the person other people think he is and the reality of what happened. As his new social position grows, the story asks how far someone can go to feel connected before honesty becomes unavoidable.",
+  good:["Strong emotional material","Character-driven story","Powerful lead role","Modern score","Topics that invite discussion"],
+  bad:["Emotionally heavy","Lead role is demanding","Some choices by characters are difficult to sympathize with","Not a light comedy"],
+  gain:"Emotional depth, intimate storytelling, challenging acting",
+  lose:"Lightness, spectacle, and easy emotional viewing",
+  vocal:"Advanced",acting:"Advanced",dance:"Low",energy:"Medium",emotion:"Very High",humor:"Low",
+  themes:"Belonging • Anxiety • Family • Loneliness • Honesty",
+  fit:"People who want an emotional, character-focused story and challenging acting opportunities.",
+  notfit:"People wanting a cheerful comedy, lots of dancing, or a simple feel-good story.",
+  similar:["The Perks of Being a Wallflower","Waitress","Spring Awakening"]},
+
+ {name:"Mamma Mia!",creator:"Björn Ulvaeus & Benny Andersson",tags:["Funny","High Energy"],score:88,
+  summary:"On a Greek island, a young woman invites three possible fathers to her wedding, bringing old relationships and family secrets back together. Sophie's wedding brings three possible fathers back into Donna’s life and forces old relationships into the present. The story follows the mother-daughter relationship alongside the romantic and friendship stories surrounding the wedding.",
+  good:["Extremely recognizable music","Funny","Feel-good atmosphere","Strong ensemble","Audience-friendly"],
+  bad:["Plot is built around the songs","Some emotional moments are broad","Less focused on technical vocal difficulty"],
+  gain:"Fun, recognizable songs, upbeat atmosphere",
+  lose:"A complex original score and highly intricate plot",
+  vocal:"Intermediate",acting:"Intermediate",dance:"Medium",energy:"High",emotion:"Medium",humor:"High",
+  themes:"Family • Love • Friendship • Identity • Second Chances",
+  fit:"People who want a feel-good show, familiar pop music, comedy, and a celebratory atmosphere.",
+  notfit:"People looking for dark drama, experimental music, or a tightly intricate plot.",
+  similar:["Moulin Rouge!","Mamma Mia!","The Prom"]},
+
+ {name:"The Sound of Music",creator:"Richard Rodgers & Oscar Hammerstein II",tags:["Emotional"],score:87,
+  summary:"A young woman becomes a governess for a large family and discovers love, music, responsibility, and courage during a dangerous period in history. Maria gradually becomes an important part of the von Trapp household, changing the atmosphere through music and affection. Her relationship with the captain develops while the family faces a much larger political danger.",
+  good:["Classic score","Strong family story","Iconic songs","Wide range of roles","Emotional payoff"],
+  bad:["Longer and more traditional structure","Historical setting","Some roles require classical musical-theatre technique"],
+  gain:"Classic storytelling, family themes, beautiful music",
+  lose:"A contemporary sound and rapid pacing",
+  vocal:"Intermediate",acting:"Intermediate",dance:"Low",energy:"Medium",emotion:"High",humor:"Medium",
+  themes:"Family • Courage • Love • Responsibility • Freedom",
+  fit:"People who enjoy classic musicals, family stories, traditional Broadway music, and historical settings.",
+  notfit:"People wanting modern pop/rock sounds or very fast pacing.",
+  similar:["Annie","My Fair Lady","The King and I"]},
+
+ {name:"Little Shop of Horrors",creator:"Alan Menken & Howard Ashman",tags:["Funny","Vocally Challenging"],score:91,
+  summary:"A shy florist discovers a strange plant that promises success but demands more than anyone expected. Seymour initially sees the plant as a chance to improve his life and win Audrey’s attention. As the plant becomes more demanding, Seymour must balance his desire for success with the consequences of what he is doing.",
+  good:["Dark comedy","Fantastic character roles","Distinctive score","Often works with a smaller cast","Strong storytelling"],
+  bad:["Dark subject matter","Some roles are vocally demanding","Production requires a convincing plant","Not for audiences wanting realism"],
+  gain:"Comedy, character work, clever music, smaller-cast potential",
+  lose:"A wholesome or realistic tone",
+  vocal:"Advanced",acting:"Advanced",dance:"Low",energy:"High",emotion:"Medium",humor:"Very High",
+  themes:"Ambition • Love • Greed • Responsibility • Consequences",
+  fit:"People who love dark comedy, unusual stories, strong character acting, and clever musical theatre.",
+  notfit:"People wanting a realistic drama or gentle family story.",
+  similar:["Beetlejuice","The Addams Family","Hairspray"]},
+
+ {name:"Aladdin",creator:"Alan Menken",tags:["Funny","High Energy","Dance Heavy"],score:89,
+  summary:"A streetwise young man discovers a magical lamp and gets pulled into a story of friendship, love, identity, and freedom. Aladdin uses the Genie’s magic to enter a world he thinks is beyond his reach, but pretending to be someone else creates new problems. His relationships with Jasmine and the Genie become central as he learns what real courage and self-worth mean.",
+  good:["Spectacle","Comedy","Large ensemble opportunities","Strong character roles","Dance and visual opportunities"],
+  bad:["Production can be expensive","Magic effects require planning","Some roles are vocally demanding","Large cast works best"],
+  gain:"Spectacle, comedy, dance, big ensemble moments",
+  lose:"A simple or intimate production",
+  vocal:"Intermediate",acting:"Intermediate",dance:"Advanced",energy:"Very High",emotion:"Medium",humor:"High",
+  themes:"Identity • Freedom • Friendship • Love • Self-Worth",
+  fit:"People who want spectacle, comedy, dance, magic, and a big ensemble.",
+  notfit:"People wanting an intimate drama or minimal production requirements.",
+  similar:["The Lion King","Beauty and the Beast","Hairspray"]},
+
+ {name:"Beauty and the Beast",creator:"Alan Menken & Howard Ashman",tags:["Emotional","High Energy"],score:88,
+  summary:"A young woman finds herself living with a mysterious prince transformed by a curse and learns to look beyond appearances. Belle and the Beast begin with almost no reason to trust each other, so their relationship develops through small changes in how they see one another. At the same time, Gaston’s obsession and the castle’s curse push the story toward its central conflict.",
+  good:["Strong romantic story","Memorable score","Beautiful ensemble opportunities","Family-friendly themes","Iconic characters"],
+  bad:["Large production requirements","Some roles have demanding vocals","Traditional fairy-tale structure"],
+  gain:"Romance, spectacle, familiar storytelling",
+  lose:"A modern or unconventional style",
+  vocal:"Intermediate",acting:"Intermediate",dance:"Medium",energy:"High",emotion:"High",humor:"Medium",
+  themes:"Love • Compassion • Identity • Family • Transformation",
+  fit:"People who love fairy tales, romance, beautiful music, and classic musical theatre.",
+  notfit:"People wanting contemporary realism or a non-romantic central story.",
+  similar:["The Lion King","Aladdin","Wicked"]},
+
+ {name:"Waitress",creator:"Sara Bareilles",tags:["Emotional","Vocally Challenging"],score:87,
+  summary:"A talented baker dreams of a different life while navigating friendship, relationships, work, and the courage to make changes. Jenna’s talent for baking becomes a way to imagine a different life while her friendships at the diner give her support. As her circumstances change, she has to decide what kind of future she wants and whether she is ready to choose it for herself.",
+  good:["Beautiful contemporary score","Strong female roles","Emotional storytelling","Distinct character voices","Intimate feel"],
+  bad:["Serious relationship themes","Some roles are vocally demanding","Less spectacle and dance","Heavier subject matter"],
+  gain:"Emotional depth, contemporary music, intimate character stories",
+  lose:"Big spectacle and nonstop comedy",
+  vocal:"Advanced",acting:"Advanced",dance:"Low",energy:"Medium",emotion:"Very High",humor:"Medium",
+  themes:"Independence • Friendship • Change • Dreams • Relationships",
+  fit:"People who love contemporary music, emotional character stories, and strong female roles.",
+  notfit:"People wanting fantasy spectacle, lots of dancing, or mostly comedy.",
+  similar:["Dear Evan Hansen","The Last Five Years","Come From Away"]},
+
+ {name:"Come From Away",creator:"Irene Sankoff & David Hein",tags:["Emotional","High Energy"],score:93,
+  summary:"A community in Newfoundland welcomes stranded airline passengers after an unexpected global event, creating friendships and moments of generosity. The show follows many travelers and residents at once, showing how a huge unexpected event affects a small community. The relationships formed during the crisis become the heart of the story, with humor and humanity carrying the audience through the uncertainty.",
+  good:["Outstanding ensemble storytelling","Warm humor","Strong community themes","Efficient staging","Emotion without relying on spectacle"],
+  bad:["Historical setting requires context","Large number of characters","Ensemble precision is important","Some serious subject matter"],
+  gain:"Community, ensemble work, warmth, clever storytelling",
+  lose:"Romantic lead-centered storytelling and spectacle",
+  vocal:"Intermediate",acting:"Advanced",dance:"Medium",energy:"High",emotion:"High",humor:"High",
+  themes:"Community • Kindness • Friendship • Humanity • Resilience",
+  fit:"People who love ensemble stories, warmth, humor, real events, and meaningful themes.",
+  notfit:"People looking for fantasy, a single central romance, or huge visual spectacle.",
+  similar:["Newsies","Waitress","The Band's Visit"]},
+
+ {name:"Hadestown",creator:"Anaïs Mitchell",tags:["Emotional","Vocally Challenging"],score:95,
+  summary:"A modern retelling of the myths of Orpheus and Eurydice, exploring love, hope, work, sacrifice, and whether people can change their fate. Orpheus and Eurydice’s relationship is tested by poverty, fear, and the harsh world around them. The story moves between the living world and Hadestown while repeating the question of whether hope and love can overcome forces that seem inevitable.",
+  good:["Distinctive musical style","Atmospheric storytelling","Complex themes","Strong character work","Beautiful ensemble sound"],
+  bad:["Darker atmosphere","Mythological structure may not suit everyone","Vocals can be demanding","Not a light comedy"],
+  gain:"Atmosphere, poetic storytelling, emotional depth",
+  lose:"A straightforward plot and lighthearted tone",
+  vocal:"Advanced",acting:"Advanced",dance:"Medium",energy:"Medium",emotion:"Very High",humor:"Low",
+  themes:"Love • Hope • Sacrifice • Fate • Inequality",
+  fit:"People who enjoy mythology, atmospheric music, symbolism, and emotionally deep stories.",
+  notfit:"People wanting a simple comedy, contemporary school story, or constant high energy.",
+  similar:["Wicked","The Great Comet","Les Misérables"]},
+
+ {name:"Les Misérables",creator:"Claude-Michel Schönberg",tags:["Emotional","Vocally Challenging"],score:94,
+  summary:"A sweeping story of justice, sacrifice, love, revolution, and redemption set against political unrest in 19th-century France. Valjean’s attempt to live a better life is repeatedly complicated by Javert’s determination to enforce the law. Their story intersects with Fantine, Cosette, Marius, and the revolutionaries, creating a large network of personal and political conflicts.",
+  good:["Huge emotional scope","Powerful score","Many major roles","Strong ensemble","Epic storytelling"],
+  bad:["Very demanding vocals","Long and emotionally heavy","Large production requirements","Serious subject matter"],
+  gain:"Epic storytelling, powerful music, dramatic roles",
+  lose:"Lightness, simplicity, and easy vocal material",
+  vocal:"Advanced",acting:"Advanced",dance:"Low",energy:"High",emotion:"Very High",humor:"Low",
+  themes:"Justice • Sacrifice • Redemption • Revolution • Love",
+  fit:"People who love epic drama, powerful vocals, large casts, and emotionally intense stories.",
+  notfit:"People looking for comedy, simple vocals, or a relaxed viewing experience.",
+  similar:["Hadestown","Hamilton","Miss Saigon"]},
+
+ {name:"The Prom",creator:"Matthew Sklar & Chad Beguelin",tags:["Funny","Emotional"],score:86,
+  summary:"A group of Broadway performers travels to a small town after learning that a student is being prevented from attending prom with her girlfriend. The performers arrive expecting to make themselves look heroic, but their involvement becomes more genuine as they get to know the students. The story contrasts public attention with private acts of friendship and support.",
+  good:["Comedy and heart","Strong ensemble","Contemporary themes","Multiple substantial roles","Uplifting ending"],
+  bad:["Broad comedy style","Some emotional topics are serious","Less spectacle than large fantasy musicals"],
+  gain:"Humor, warmth, contemporary themes, ensemble roles",
+  lose:"Fantasy spectacle and highly complex musical structure",
+  vocal:"Intermediate",acting:"Intermediate",dance:"Medium",energy:"High",emotion:"High",humor:"High",
+  themes:"Acceptance • Community • Identity • Friendship • Activism",
+  fit:"People who want a funny, heartfelt contemporary story with ensemble opportunities.",
+  notfit:"People looking for fantasy, historical epic, or extremely dark drama.",
+  similar:["Hairspray","Mean Girls","Mamma Mia!"]},
+
+ {name:"Annie",creator:"Charles Strouse & Martin Charnin",tags:["Funny","Emotional"],score:84,
+  summary:"An optimistic orphan searches for her parents and finds unexpected family and friendship along the way. Annie’s optimism helps change the atmosphere of Warbucks’s household while her search for her parents continues. The story mixes her hope and independence with adults who see her situation as an opportunity for their own purposes.",
+  good:["Strong young roles","Classic songs","Family-friendly story","Comedy","Large range of supporting roles"],
+  bad:["Traditional musical style","Some roles require strong young performers","Production can become large"],
+  gain:"Optimism, classic musical theatre, young-performer opportunities",
+  lose:"A modern pop/rock sound and complex adult drama",
+  vocal:"Intermediate",acting:"Intermediate",dance:"Medium",energy:"High",emotion:"Medium",humor:"High",
+  themes:"Hope • Family • Friendship • Resilience • Generosity",
+  fit:"Families, schools, young performers, and people who love classic musical theatre.",
+  notfit:"People wanting contemporary music or very complex adult storytelling.",
+  similar:["Matilda","The Sound of Music","The Wizard of Oz"]},
+
+ {name:"Chicago",creator:"John Kander & Fred Ebb",tags:["Funny","Dance Heavy","Vocally Challenging"],score:91,
+  summary:"Two women in 1920s Chicago navigate fame, crime, ambition, and the media while trying to control the stories told about them. Roxie and Velma discover that public attention can be manipulated almost like a stage performance. Their attempts to control the narrative create a darkly comic look at fame, crime, celebrity, and the media.",
+  good:["Excellent dance opportunities","Sharp satire","Strong adult roles","Distinctive jazz score","Minimalist staging can work"],
+  bad:["Mature themes","Dance technique can be demanding","Dark subject matter","Not a family-oriented show"],
+  gain:"Jazz, dance, satire, complex characters",
+  lose:"A wholesome family atmosphere and simple choreography",
+  vocal:"Advanced",acting:"Advanced",dance:"Advanced",energy:"High",emotion:"Medium",humor:"High",
+  themes:"Ambition • Fame • Media • Crime • Manipulation",
+  fit:"People who enjoy jazz, choreography, satire, and morally complicated characters.",
+  notfit:"People wanting a family-friendly show or straightforward heroes and villains.",
+  similar:["Cabaret","Moulin Rouge!","Six"]},
+
+ {name:"Frozen",creator:"Kristen Anderson-Lopez & Robert Lopez",tags:["Emotional","High Energy","Dance Heavy"],score:88,
+  summary:"A stage adaptation of the story of sisters Anna and Elsa, whose relationship is tested when Elsa's powers isolate her from the kingdom. Anna sets out to find her sister and discovers that courage, family, and love can change everything.",
+  good:["Strong family story","Big visual moments","Great ensemble opportunities","Mix of humor and emotion","Accessible for younger performers"],
+  bad:["Some roles need strong vocals","Large productions can require complex staging","Familiar story may feel less surprising"],
+  gain:"Family, spectacle, humor, memorable characters",lose:"A completely original story and darker themes",
+  vocal:"Advanced",acting:"Medium",dance:"Medium",energy:"High",emotion:"High",humor:"High",themes:"Family • Love • Courage • Identity • Belonging",
+  fit:"People who love fantasy, family stories, comedy, and big theatrical moments.",notfit:"People looking for gritty realism or a very unconventional story.",similar:["Beauty and the Beast","The Lion King","Aladdin"]},
+ {name:"Into the Woods",creator:"Stephen Sondheim",tags:["Emotional","Funny","Vocally Challenging"],score:92,
+  summary:"Classic fairy-tale characters enter the woods to pursue wishes that seem simple at first. Their stories collide, and the musical explores what happens after the happily-ever-after ending.",
+  good:["Layered storytelling","Complex characters","Excellent ensemble work","Rich music","Interesting themes"],
+  bad:["Vocally demanding score","Story becomes darker","Requires careful acting and timing"],
+  gain:"Complex storytelling, ensemble depth, sophisticated music",lose:"Simple fairy-tale storytelling",
+  vocal:"Advanced",acting:"Advanced",dance:"Low",energy:"Medium",emotion:"High",humor:"High",themes:"Wishes • Choices • Consequences • Family • Responsibility",
+  fit:"People who like clever stories, fairy tales with twists, and challenging theatre.",notfit:"People wanting a straightforward, constantly upbeat musical.",similar:["Wicked","Hadestown","The Addams Family"]},
+ {name:"Moulin Rouge!",creator:"John Logan / various songs",tags:["High Energy","Dance Heavy","Vocally Challenging"],score:89,
+  summary:"A theatrical adaptation inspired by the world of the Moulin Rouge, following a songwriter and a performer whose relationship unfolds against a spectacular nightclub setting.",
+  good:["Huge spectacle","Creative choreography","Energetic score","Strong visual identity","Big performance opportunities"],
+  bad:["Mature themes","Demanding vocals","Complex staging","Very high energy"],
+  gain:"Spectacle, pop music, dance, visual creativity",lose:"Simplicity and a quiet tone",
+  vocal:"Advanced",acting:"Advanced",dance:"Advanced",energy:"Very High",emotion:"High",humor:"Medium",themes:"Love • Art • Ambition • Sacrifice • Performance",
+  fit:"People who love spectacle, pop music, dance, and dramatic theatrical worlds.",notfit:"People looking for a family-oriented or low-energy musical.",similar:["Chicago","Wicked","Six"]},
+ {name:"The Phantom of the Opera",creator:"Andrew Lloyd Webber",tags:["Emotional","Vocally Challenging","High Energy"],score:90,
+  summary:"A mysterious figure living beneath an opera house becomes fascinated by a young singer whose career is beginning to rise. The story combines ambition, music, mystery, and complicated relationships.",
+  good:["Powerful vocal roles","Atmospheric staging","Large ensemble","Dramatic score","Iconic theatrical moments"],
+  bad:["Very demanding singing","Dark and intense themes","Large technical requirements"],
+  gain:"Big vocals, atmosphere, drama, orchestral sound",lose:"Light comedy and easy vocal parts",
+  vocal:"Advanced",acting:"Advanced",dance:"Medium",energy:"High",emotion:"High",humor:"Low",themes:"Music • Ambition • Obsession • Mystery • Identity",
+  fit:"People who love dramatic stories, soaring vocals, mystery, and grand theatre.",notfit:"People wanting a light comedy or simple vocal score.",similar:["Les Misérables","Wicked","Hadestown"]},
+ {name:"Anastasia",creator:"Stephen Flaherty & Lynn Ahrens",tags:["Emotional","High Energy","Vocally Challenging"],score:88,
+  summary:"A young woman with a mysterious past sets out across Europe with two companions while trying to discover who she is and where she belongs. The musical blends history-inspired storytelling with romance, adventure, and family themes.",
+  good:["Strong lead role","Beautiful score","Adventure story","Good ensemble variety","Emotional character journey"],
+  bad:["Some challenging vocals","Historical elements are fictionalized","Romantic storyline is central"],
+  gain:"Adventure, emotion, character growth, sweeping music",lose:"A completely realistic historical account",
+  vocal:"Advanced",acting:"Medium",dance:"Medium",energy:"High",emotion:"High",humor:"Medium",themes:"Identity • Family • Memory • Adventure • Belonging",
+  fit:"People who enjoy adventure, emotional stories, strong lead roles, and sweeping music.",notfit:"People looking for pure comedy or a documentary-style history story.",similar:["Wicked","The Sound of Music","Les Misérables"]},
+ {name:"The Outsiders",creator:"Jamestown Revival & Justin Levine",tags:["Emotional","High Energy"],score:91,
+  summary:"Two groups of teenagers on opposite sides of town struggle with loyalty, identity, friendship, and the consequences of conflict. The musical focuses on relationships and the choices people make when they feel trapped by their circumstances.",
+  good:["Strong ensemble","Physical storytelling","Emotional character work","Modern sound","Clear group dynamics"],
+  bad:["Serious subject matter","Physically demanding staging","Emotionally intense scenes"],
+  gain:"Ensemble storytelling, movement, emotional depth",lose:"A lighthearted or purely comedic atmosphere",
+  vocal:"Medium",acting:"Advanced",dance:"Advanced",energy:"High",emotion:"High",humor:"Low",themes:"Friendship • Loyalty • Identity • Family • Belonging",
+  fit:"People who enjoy character-driven stories, ensemble work, movement, and emotional theatre.",notfit:"People looking for a mostly comedic or fantasy musical.",similar:["Newsies","West Side Story","Come From Away"]},
+ {name:"West Side Story",creator:"Leonard Bernstein & Stephen Sondheim",tags:["Emotional","Dance Heavy","Vocally Challenging"],score:93,
+  summary:"Two young people from rival groups fall in love while tensions between their communities grow. The musical uses dance, music, and character relationships to explore conflict, identity, and belonging.",
+  good:["Exceptional choreography","Strong music","Major ensemble roles","Powerful drama","Distinctive characters"],
+  bad:["Serious themes","Demanding choreography","Some lead vocals are challenging"],
+  gain:"Dance, drama, ensemble power, musical sophistication",lose:"A light and easygoing tone",
+  vocal:"Advanced",acting:"Advanced",dance:"Advanced",energy:"High",emotion:"High",humor:"Low",themes:"Love • Conflict • Identity • Community • Belonging",
+  fit:"People who love dance-heavy classics, dramatic stories, and strong ensemble work.",notfit:"People wanting mostly comedy or low-intensity choreography.",similar:["The Outsiders","Chicago","Newsies"]},
+ {name:"Fiddler on the Roof",creator:"Jerry Bock & Sheldon Harnick",tags:["Emotional","Funny","High Energy"],score:87,
+  summary:"A family and community try to hold onto tradition while their world changes around them. The story balances humor, family relationships, music, and difficult choices about the future.",
+  good:["Strong family roles","Excellent ensemble","Rich character work","Humor and emotion","Classic score"],
+  bad:["Historical setting","Some heavy themes","Large ensemble can be useful"],
+  gain:"Family storytelling, tradition, character depth",lose:"A modern setting and contemporary pop sound",
+  vocal:"Medium",acting:"Advanced",dance:"Medium",energy:"Medium",emotion:"High",humor:"High",themes:"Family • Tradition • Change • Community • Identity",
+  fit:"People who enjoy family stories, classic theatre, humor, and emotional depth.",notfit:"People wanting modern pop music or a fast-paced contemporary setting.",similar:["The Sound of Music","Come From Away","Annie"]},
+ {name:"Mary Poppins",creator:"Richard M. Sherman & Robert B. Sherman / Julian Fellowes",tags:["Funny","High Energy","Dance Heavy"],score:86,
+  summary:"A magical nanny arrives to help a family rediscover imagination, connection, and joy. The story combines family comedy with fantasy and large theatrical sequences.",
+  good:["Family-friendly","Dance opportunities","Visual spectacle","Strong ensemble","Lots of character roles"],
+  bad:["Large production can be technically demanding","Some roles need strong vocals and dance","Traditional style"],
+  gain:"Family appeal, magic, dance, spectacle",lose:"A gritty or contemporary style",
+  vocal:"Medium",acting:"Medium",dance:"High",energy:"High",emotion:"Medium",humor:"High",themes:"Family • Imagination • Childhood • Connection • Change",
+  fit:"Families, schools, and performers who enjoy magical, energetic theatre.",notfit:"People looking for dark realism or experimental theatre.",similar:["Matilda","The Sound of Music","Beauty and the Beast"]},
+ {name:"School of Rock",creator:"Andrew Lloyd Webber",tags:["Funny","High Energy"],score:88,
+  summary:"A struggling musician pretends to be a substitute teacher and discovers a group of students who can help him form a rock band. Along the way, both the teacher and students gain confidence and learn to take their talents seriously.",
+  good:["Great youth roles","Live rock energy","Comedy","Ensemble opportunities","Fun performance style"],
+  bad:["Young performers need musical ability","Rock vocals can be demanding","Fast pace"],
+  gain:"Rock music, comedy, youth ensemble energy",lose:"Traditional Broadway orchestration and a quiet tone",
+  vocal:"Medium",acting:"Medium",dance:"Low",energy:"Very High",emotion:"Medium",humor:"High",themes:"Confidence • Music • Friendship • Family • Creativity",
+  fit:"Young performers and audiences who love rock, comedy, and energetic shows.",notfit:"People wanting a slow, dramatic, or dance-focused musical.",similar:["Matilda","Newsies","Hairspray"]},
+ {name:"Something Rotten!",creator:"Karey & Wayne Kirkpatrick",tags:["Funny","High Energy"],score:87,
+  summary:"Two struggling playwright brothers try to compete in the theatre world while Shakespeare's popularity keeps getting in their way. The result is a fast, silly comedy packed with theatre jokes and wordplay.",
+  good:["Big comedy opportunities","Theatre references","Ensemble fun","Energetic staging","Memorable character roles"],
+  bad:["Comedy timing matters","Some roles are vocally challenging","Lots of jokes require context"],
+  gain:"Comedy, theatre humor, ensemble energy",lose:"Serious emotional drama",
+  vocal:"Medium",acting:"Advanced",dance:"Medium",energy:"High",emotion:"Low",humor:"Very High",themes:"Theatre • Ambition • Competition • Creativity • Friendship",
+  fit:"People who love musical theatre, comedy, wordplay, and ridiculous situations.",notfit:"People wanting a serious or emotionally heavy musical.",similar:["The Addams Family","Hairspray","Mean Girls"]},
+ {name:"The Music Man",creator:"Meredith Willson",tags:["Funny","High Energy","Dance Heavy"],score:85,
+  summary:"A traveling salesman arrives in a small town promising to organize a boys' band, but his plans become complicated as he gets to know the community. The story mixes comedy, romance, music, and community transformation.",
+  good:["Large cast","Dance opportunities","Strong character roles","Classic ensemble numbers","Comedy"],
+  bad:["Longer classic style","Some old-fashioned humor","Requires strong ensemble coordination"],
+  gain:"Classic musical theatre, ensemble work, dance",lose:"Modern musical styles",
+  vocal:"Medium",acting:"Medium",dance:"High",energy:"High",emotion:"Medium",humor:"High",themes:"Community • Trust • Change • Ambition • Connection",
+  fit:"People who enjoy classic musicals, dance, comedy, and large casts.",notfit:"People looking for contemporary pop or very experimental theatre.",similar:["Fiddler on the Roof","The Sound of Music","Hairspray"]},
+ {name:"A Chorus Line",creator:"Marvin Hamlisch & Edward Kleban",tags:["Emotional","Dance Heavy","Vocally Challenging"],score:90,
+  summary:"A group of dancers audition for a musical and share personal stories as they compete for a limited number of places. The show focuses on identity, ambition, vulnerability, and the reality of performing.",
+  good:["Huge dance opportunities","Strong monologues","Ensemble focus","Character-driven","Theatre-centered story"],
+  bad:["Dance ability is important","Emotionally serious","Limited traditional plot"],
+  gain:"Dance, audition skills, ensemble storytelling",lose:"A conventional fantasy-style plot",
+  vocal:"Medium",acting:"Advanced",dance:"Advanced",energy:"High",emotion:"High",humor:"Medium",themes:"Performance • Identity • Ambition • Dreams • Competition",
+  fit:"Performers who love dance and stories about theatre itself.",notfit:"People wanting a fantasy adventure or simple plot.",similar:["The Outsiders","Chicago","Newsies"]},
+ {name:"Guys and Dolls",creator:"Frank Loesser",tags:["Funny","Dance Heavy","High Energy"],score:86,
+  summary:"Gamblers, performers, and romantics collide in a lively New York story filled with bets, unlikely relationships, and comic complications. The musical combines big ensemble numbers with character-driven comedy.",
+  good:["Comedy","Dance opportunities","Large cast","Strong character roles","Classic score"],
+  bad:["Older setting and style","Some dance-heavy numbers","Classic musical conventions"],
+  gain:"Comedy, dance, ensemble energy",lose:"Contemporary storytelling and sound",
+  vocal:"Medium",acting:"Medium",dance:"High",energy:"High",emotion:"Medium",humor:"High",themes:"Friendship • Gambling • Romance • Ambition • Community",
+  fit:"People who enjoy classic comedy, dance, and lively ensemble musicals.",notfit:"People looking for modern pop theatre or serious drama.",similar:["The Music Man","Chicago","Mamma Mia!"]},
+ {name:"Once",creator:"Enda Walsh & Glen Hansard / Markéta Irglová",tags:["Emotional","Vocally Challenging"],score:89,
+  summary:"Two musicians meet in Dublin and begin making music together while navigating friendship, dreams, and complicated feelings. The musical is intimate and centered around live music and relationships.",
+  good:["Live music","Intimate storytelling","Strong ensemble","Emotional writing","Unusual staging"],
+  bad:["Quieter pace","Some difficult vocals and instruments","Less spectacle"],
+  gain:"Intimacy, live music, emotional storytelling",lose:"Large-scale spectacle and choreography",
+  vocal:"Advanced",acting:"Advanced",dance:"Low",energy:"Medium",emotion:"High",humor:"Medium",themes:"Music • Dreams • Friendship • Creativity • Change",
+  fit:"People who love intimate stories, musicianship, and heartfelt theatre.",notfit:"People wanting huge dance numbers or fantasy spectacle.",similar:["Waitress","Come From Away","Hadestown"]},
+ {name:"Kimberly Akimbo",creator:"Jeanine Tesori & David Lindsay-Abaire",tags:["Emotional","Funny"],score:91,
+  summary:"A teenager dealing with a rare condition that makes her age faster than usual tries to balance school, friendship, family, and a new sense of possibility. The musical mixes quirky humor with heartfelt character storytelling.",
+  good:["Excellent character work","Original story","Strong ensemble","Humor and emotion","Unusual perspective"],
+  bad:["Serious family themes","Less spectacle","Character-driven rather than plot-heavy"],
+  gain:"Original storytelling, humor, character depth",lose:"Big spectacle and dance-heavy staging",
+  vocal:"Medium",acting:"Advanced",dance:"Low",energy:"Medium",emotion:"High",humor:"High",themes:"Family • Friendship • Growing Up • Identity • Hope",
+  fit:"People who love unusual stories, character development, and a mix of comedy and emotion.",notfit:"People looking for huge spectacle or nonstop action.",similar:["Matilda","Come From Away","The Prom"]},
+ {name:"Bring It On",creator:"Lin-Manuel Miranda & Tom Kitt / Amanda Green",tags:["High Energy","Dance Heavy","Funny"],score:87,
+  summary:"Two groups of cheerleaders navigate competition, friendship, school life, and changing ideas about where they belong. The musical combines pop, hip-hop, comedy, and athletic choreography.",
+  good:["High-energy choreography","Youth roles","Ensemble work","Modern sound","Comedy"],
+  bad:["Very physically demanding","Dance and movement are central","Fast-paced staging"],
+  gain:"Dance, athletic energy, youth ensemble work",lose:"Low-energy performance demands",
+  vocal:"Medium",acting:"Medium",dance:"Advanced",energy:"Very High",emotion:"Medium",humor:"High",themes:"Friendship • Competition • Identity • Teamwork • Belonging",
+  fit:"Performers who love dance, cheer, pop, hip-hop, and energetic ensemble work.",notfit:"People looking for a quiet, vocal-only musical.",similar:["Mean Girls","Hairspray","Newsies"]},  {name:"Gypsy",creator:"Jule Styne & Stephen Sondheim",tags:["Emotional","Vocally Challenging"],score:92 ,
+   summary:"A backstage classic about Rose, an ambitious stage mother determined to make her daughters successful, and the complicated cost of chasing a dream. As the family moves through vaudeville and show business, the musical examines ambition, identity, sacrifice, and what happens when a parent’s dream becomes a child’s life.",
+   good:["Powerful central role","Exceptional character acting","Strong supporting roles","Classic musical-theatre score","Rich emotional arc"],
+   bad:["Lead role is extremely demanding","Themes can be emotionally heavy","Classic pacing is slower","Requires nuanced character work"],
+   gain:"You gain one of musical theatre’s great character studies, major acting opportunities, and a score with huge dramatic range.",
+   lose:"You give up a consistently light tone, simple character motivations, and an easy lead performance.",
+   vocal:"Advanced",acting:"Advanced",dance:"Medium",energy:"High",emotion:"High",humor:"Medium",
+   themes:"Ambition • Family • Show business",
+   fit:"Performers who love complex characters, old-school Broadway, and emotionally layered stories.",
+   notfit:"People looking for a youthful, upbeat ensemble comedy or an easy lead role.",
+   similar:["Funny Girl","Dreamgirls","Follies"]} ,  {name:"Cabaret",creator:"John Kander & Fred Ebb / Joe Masteroff",tags:["Emotional","Vocally Challenging"],score:94 ,
+   summary:"A stylish musical set in 1930s Berlin, where performers and outsiders try to live freely while the world around them becomes increasingly dangerous and divided. The cabaret itself creates a contrast between entertainment and the political reality outside it.",
+   good:["Distinctive atmosphere","Excellent acting material","Strong vocal opportunities","Flexible staging concepts","Sharp social commentary"],
+   bad:["Mature and serious themes","Darker emotional tone","Requires careful historical context","Not primarily a feel-good show"],
+   gain:"You gain style, subtext, memorable character work, and a production that can say a lot with staging and performance.",
+   lose:"You give up a lighthearted atmosphere, simple morality, and a family-oriented tone.",
+   vocal:"Advanced",acting:"Advanced",dance:"High",energy:"High",emotion:"High",humor:"Medium",
+   themes:"Politics • Identity • Society • Change",
+   fit:"People who enjoy sophisticated storytelling, strong acting, atmosphere, and musicals that invite discussion.",
+   notfit:"People wanting cheerful family entertainment, fantasy adventure, or nonstop comedy.",
+   similar:["Chicago","Company","Sweeney Todd"]} ,  {name:"Company",creator:"Stephen Sondheim & George Furth",tags:["Emotional","Funny"],score:91 ,
+   summary:"An unmarried New Yorker is surrounded by friends and married couples who make him question what commitment, friendship, and adulthood actually mean. Instead of following one traditional plot, the musical builds a portrait of relationships through a series of connected encounters.",
+   good:["Exceptional ensemble writing","Smart character work","Sophisticated score","Flexible staging","Strong comedic and dramatic material"],
+   bad:["Nonlinear, episodic structure","Dialogue-heavy sections","More mature relationship themes","Less spectacle than many Broadway shows"],
+   gain:"You gain nuanced relationships, ensemble depth, and some of the richest character writing in musical theatre.",
+   lose:"You give up a single straightforward plot, fantasy spectacle, and a simple hero-villain structure.",
+   vocal:"Advanced",acting:"Advanced",dance:"Medium",energy:"Medium",emotion:"High",humor:"High",
+   themes:"Relationships • Friendship • Adulthood • Commitment",
+   fit:"People who like realistic relationships, clever writing, ensemble acting, and shows that make you think.",
+   notfit:"People wanting a big adventure, a simple plot, or constant spectacle.",
+   similar:["A Little Night Music","Merrily We Roll Along","Follies"]} ,  {name:"Sweeney Todd",creator:"Stephen Sondheim & Hugh Wheeler",tags:["Emotional","Vocally Challenging"],score:95 ,
+   summary:"A gothic musical about a barber whose desire for revenge consumes his life after he returns to London seeking justice for what happened to his family. The story surrounds him with characters whose choices create a dark chain of consequences, while the score combines suspense, humor, and psychological intensity.",
+   good:["Exceptional score","Complex lead roles","Atmospheric storytelling","Strong ensemble material","Dark theatrical style"],
+   bad:["Very dark subject matter","Demanding vocals","Heavy acting requirements","Not appropriate for a light family production"],
+   gain:"You gain sophisticated music, intense character work, and an atmosphere that can make a production feel cinematic.",
+   lose:"You give up lightness, easy-going comedy, and beginner-friendly lead material.",
+   vocal:"Advanced",acting:"Advanced",dance:"Medium",energy:"High",emotion:"High",humor:"Low",
+   themes:"Revenge • Justice • Obsession • Fate",
+   fit:"Performers and audiences who enjoy gothic stories, challenging music, and morally complicated characters.",
+   notfit:"People wanting bright family entertainment, simple comedy, or an emotionally easy show.",
+   similar:["Cabaret","Into the Woods","The Phantom of the Opera"]} ,  {name:"Oklahoma!",creator:"Richard Rodgers & Oscar Hammerstein II",tags:["Emotional","Dance Heavy"],score:89 ,
+   summary:"Set in the Oklahoma Territory, the musical follows a group of neighbors whose romances, rivalries, and community traditions become intertwined. Beneath its familiar charm, the show explores belonging, jealousy, independence, and the tension between old expectations and new possibilities.",
+   good:["Foundational musical-theatre history","Strong ensemble scenes","Classic score","Dance opportunities","Wide range of roles"],
+   bad:["Older style and pacing","Some dated attitudes and material","Requires attention to historical context","Not a modern pop sound"],
+   gain:"You gain classic Broadway storytelling, strong dance traditions, and a chance to study where modern musical theatre came from.",
+   lose:"You give up contemporary language, pop/rock production style, and very fast pacing.",
+   vocal:"Medium",acting:"Medium",dance:"High",energy:"Medium",emotion:"Medium",humor:"Medium",
+   themes:"Community • Romance • Belonging • Conflict",
+   fit:"People who enjoy golden-age Broadway, history, dance, and classic storytelling.",
+   notfit:"People looking for a modern pop musical, highly experimental structure, or rapid-fire pacing.",
+   similar:["Carousel","The Music Man","South Pacific"]} ,  {name:"Carousel",creator:"Richard Rodgers & Oscar Hammerstein II",tags:["Emotional","Dance Heavy"],score:90 ,
+   summary:"A relationship in a small coastal community becomes the center of a sweeping story about love, responsibility, family, and redemption. The musical combines intimate character moments with large ensemble sequences and some of the most ambitious dance storytelling of its era.",
+   good:["Beautiful score","Strong dance heritage","Powerful dramatic roles","Large ensemble possibilities","Big emotional themes"],
+   bad:["Serious subject matter","Older theatrical style","Demanding lead roles","Less consistently comic"],
+   gain:"You gain rich orchestral writing, major emotional scenes, and sophisticated dance opportunities.",
+   lose:"You give up a consistently cheerful tone, modern dialogue, and an easy-going plot.",
+   vocal:"Advanced",acting:"Advanced",dance:"High",energy:"Medium",emotion:"High",humor:"Low",
+   themes:"Love • Family • Redemption • Choices",
+   fit:"People who love classic musical theatre, emotional storytelling, and dance-driven productions.",
+   notfit:"People wanting contemporary pop, mostly comedy, or a very light story.",
+   similar:["Oklahoma!","South Pacific","The Sound of Music"]} ,  {name:"South Pacific",creator:"Richard Rodgers & Oscar Hammerstein II",tags:["Emotional"],score:90 ,
+   summary:"Two relationships unfold on a tropical island during World War II as characters confront love, duty, prejudice, and the choices made under pressure. The musical pairs romantic storytelling with a larger examination of assumptions and the way people learn to see one another differently.",
+   good:["Beautiful score","Strong romantic roles","Ensemble opportunities","Meaningful themes","Classic musical-theatre style"],
+   bad:["Historical setting","Serious themes around prejudice and war","Traditional pacing","Less dance-heavy than some classics"],
+   gain:"You gain lyrical music, thoughtful themes, and strong opportunities for both leads and ensemble.",
+   lose:"You give up nonstop comedy, modern sound, and a simple conflict.",
+   vocal:"Medium",acting:"Medium",dance:"Medium",energy:"Medium",emotion:"High",humor:"Medium",
+   themes:"Love • Prejudice • Courage • War",
+   fit:"People who like classic romance with deeper social themes and a traditional Broadway sound.",
+   notfit:"People wanting a purely comic show, contemporary pop, or constant high energy.",
+   similar:["Oklahoma!","The Sound of Music","Fiddler on the Roof"]} ,  {name:"My Fair Lady",creator:"Frederick Loewe & Alan Jay Lerner",tags:["Funny","Vocally Challenging"],score:93 ,
+   summary:"A professor makes a bet that he can transform a working-class woman’s speech and manners, but the experiment becomes a much more complicated question about identity, class, independence, and respect. Their clash of personalities drives a witty story filled with memorable characters and elegant music.",
+   good:["Iconic score","Strong acting roles","Excellent dialogue","Classic romantic comedy","Rich character arc"],
+   bad:["Traditional structure","Longer scenes of dialogue","Historical class attitudes need context","Several major roles are demanding"],
+   gain:"You gain sophisticated musical comedy, language-driven acting, and a beautifully constructed classic score.",
+   lose:"You give up contemporary pop sounds, rapid pacing, and a simple romance.",
+   vocal:"Advanced",acting:"Advanced",dance:"Medium",energy:"Medium",emotion:"High",humor:"High",
+   themes:"Class • Identity • Language • Change",
+   fit:"People who love witty dialogue, classic Broadway, character acting, and elegant storytelling.",
+   notfit:"People looking for modern slang, fast action, or heavily dance-driven theatre.",
+   similar:["The Music Man","Funny Girl","Hello, Dolly!"]} ,  {name:"Hello, Dolly!",creator:"Jerry Herman / Michael Stewart",tags:["Funny","Dance Heavy"],score:91 ,
+   summary:"A confident matchmaker enters a wealthy but lonely businessman’s life and sets out to change his future—and her own. What begins as a matchmaking mission becomes a joyful story about second chances, confidence, community, and knowing when to take a chance on yourself.",
+   good:["Big comedy role","Joyful score","Large ensemble opportunities","Strong dance numbers","Audience-friendly story"],
+   bad:["Classic musical style","Lead requires strong stage presence","Less dramatic complexity","Large numbers benefit from a big cast"],
+   gain:"You gain warmth, comedy, dance, and classic Broadway charm with lots of room for personality.",
+   lose:"You give up dark realism, contemporary music, and a deeply complicated plot.",
+   vocal:"Medium",acting:"Medium",dance:"High",energy:"High",emotion:"Medium",humor:"High",
+   themes:"Second chances • Romance • Confidence • Community",
+   fit:"People who want a bright, funny, celebratory musical with strong character roles.",
+   notfit:"People seeking intense drama, modern pop, or a tightly plotted mystery.",
+   similar:["The Music Man","Guys and Dolls","Mamma Mia!"]} ,  {name:"Funny Girl",creator:"Jule Styne & Bob Merrill / Isobel Lennart",tags:["Emotional","Vocally Challenging"],score:91 ,
+   summary:"A talented young performer rises through the entertainment world while balancing ambition, fame, love, and the pressure of being underestimated. The story places a huge amount of weight on its central performer, making the musical feel like both a character story and a star vehicle.",
+   good:["Outstanding lead role","Powerful solo material","Strong comedy and drama","Show-business setting","Memorable score"],
+   bad:["Very demanding lead vocals","Lead carries much of the show","Biographical structure","Romance is a major part of the story"],
+   gain:"You gain a major vocal and acting showcase with a dramatic journey that can build toward huge performance moments.",
+   lose:"You give up an ensemble-first structure, low vocal pressure, and a low-stakes story.",
+   vocal:"Advanced",acting:"Advanced",dance:"Medium",energy:"High",emotion:"High",humor:"Medium",
+   themes:"Ambition • Love • Fame • Resilience",
+   fit:"Strong singers and actors who want a central role with lots of personality and emotional range.",
+   notfit:"People who prefer ensemble musicals, lighter vocal demands, or fantasy worlds.",
+   similar:["Gypsy","Dreamgirls","Beautiful"]} ,  {name:"Follies",creator:"Stephen Sondheim & James Goldman",tags:["Emotional"],score:89 ,
+   summary:"Former performers reunite in an old theatre before it is demolished, and memories of their younger selves begin colliding with the people they became. The musical looks at regret, friendship, ambition, aging, and the gap between the life people imagined and the life they actually lived.",
+   good:["Deep character material","Rich ensemble writing","Sophisticated score","Strong emotional scenes","Interesting theatrical concept"],
+   bad:["Complex structure","Reflective rather than action-driven","Older characters dominate","Requires mature acting choices"],
+   gain:"You gain layered relationships, ambitious musical writing, and a story built around memory and character.",
+   lose:"You give up simple plotting, constant momentum, and a youthful adventure tone.",
+   vocal:"Advanced",acting:"Advanced",dance:"Medium",energy:"Medium",emotion:"High",humor:"Low",
+   themes:"Memory • Regret • Aging • Dreams",
+   fit:"People who love character-driven theatre, ensemble acting, and thoughtful stories about choices.",
+   notfit:"People wanting fast action, fantasy, or a straightforward feel-good story.",
+   similar:["Company","Merrily We Roll Along","Gypsy"]} ,  {name:"Dreamgirls",creator:"Henry Krieger & Tom Eyen",tags:["Emotional","Vocally Challenging","Dance Heavy"],score:94 ,
+   summary:"A singing trio gets its big break and discovers that success can change friendships, identity, ambition, and the balance of power inside the group. Set against the music business, the story follows performers as they chase fame while trying to decide what success is worth.",
+   good:["Powerful vocal roles","Excellent ensemble harmonies","Strong choreography","Big dramatic moments","Show-business setting"],
+   bad:["Demanding vocals","High performance stamina","Serious relationship conflicts","Large musical numbers need tight coordination"],
+   gain:"You gain powerhouse singing, choreography, emotional stakes, and multiple standout roles.",
+   lose:"You give up a quiet, intimate atmosphere and easy vocal material.",
+   vocal:"Advanced",acting:"Advanced",dance:"High",energy:"Very High",emotion:"High",humor:"Medium",
+   themes:"Ambition • Fame • Friendship • Music business",
+   fit:"Performers who love singing, dancing, ensemble harmonies, and stories about ambition and fame.",
+   notfit:"People looking for low-energy chamber theatre or a mostly comedic show.",
+   similar:["Beautiful","Jersey Boys","A Chorus Line"]} ,  {name:"Pippin",creator:"Stephen Schwartz & Roger O. Hirson",tags:["High Energy","Dance Heavy"],score:90 ,
+   summary:"A young prince searches for a meaningful life by testing ideas of adventure, greatness, romance, and responsibility. Its theatrical storytelling keeps questioning whether spectacular achievements are actually what make a life worthwhile.",
+   good:["Highly theatrical concept","Strong movement opportunities","Flexible staging","Interesting ensemble roles","Big themes"],
+   bad:["Abstract storytelling","Style depends heavily on the production","Can be physically demanding","Not a straightforward adventure"],
+   gain:"You gain theatrical freedom, movement, and a story that invites creative staging and interpretation.",
+   lose:"You give up realism, a simple plot, and a conventional hero’s journey.",
+   vocal:"Medium",acting:"Advanced",dance:"Very High",energy:"High",emotion:"High",humor:"Medium",
+   themes:"Identity • Purpose • Adventure • Performance",
+   fit:"Performers who like experimental staging, choreography, fantasy, and stories about purpose.",
+   notfit:"People wanting naturalistic drama, a simple story, or mostly realistic settings.",
+   similar:["Wicked","Into the Woods","The Greatest Showman"]} ,  {name:"Godspell",creator:"Stephen Schwartz & John-Michael Tebelak",tags:["Emotional","High Energy"],score:86 ,
+   summary:"A group of performers comes together to share stories, music, humor, and lessons about community and compassion. The loose structure gives the ensemble room to create a playful, participatory production while still building toward a more emotional final stretch.",
+   good:["Ensemble-friendly","Flexible staging","Energetic group numbers","Mix of humor and heart","Adaptable production style"],
+   bad:["Loose plot structure","Relies heavily on ensemble chemistry","Specific religious themes may not suit every audience","Less character-driven than many shows"],
+   gain:"You gain flexibility, group spirit, and lots of opportunities for a cast to build its own personality.",
+   lose:"You give up a tightly plotted narrative, a single dominant protagonist, and a traditional dramatic arc.",
+   vocal:"Medium",acting:"Medium",dance:"Medium",energy:"High",emotion:"High",humor:"High",
+   themes:"Community • Faith • Kindness • Hope",
+   fit:"Groups that enjoy ensemble work, creativity, and a positive community-centered tone.",
+   notfit:"People who want a detailed linear plot or a strongly individual protagonist.",
+   similar:["Joseph and the Amazing Technicolor Dreamcoat","Pippin","Children of Eden"]} ,  {name:"Jesus Christ Superstar",creator:"Andrew Lloyd Webber & Tim Rice",tags:["Emotional","Vocally Challenging"],score:92 ,
+   summary:"A rock musical retelling the final period of Jesus’s life through the perspectives and conflicts of its central figures. Rather than presenting history like a straightforward biography, it focuses on relationships, leadership, pressure, and how people respond to rapidly changing events.",
+   good:["Iconic rock score","Powerful lead roles","High-energy ensemble","Strong dramatic material","Distinctive musical style"],
+   bad:["Serious historical and religious themes","Demanding vocals","Emotionally intense","Not designed as light comedy"],
+   gain:"You gain major rock vocals, strong dramatic conflict, and an opportunity for a striking concert-like production.",
+   lose:"You give up a relaxed tone, beginner-level lead singing, and a traditional Broadway sound.",
+   vocal:"Advanced",acting:"Advanced",dance:"Medium",energy:"High",emotion:"High",humor:"Low",
+   themes:"Faith • Leadership • Conflict • Choice",
+   fit:"Strong singers and actors who enjoy rock, history-inspired stories, and intense ensemble work.",
+   notfit:"People looking for light family comedy or a quiet, low-intensity show.",
+   similar:["Evita","Godspell","Hadestown"]} ,  {name:"Evita",creator:"Andrew Lloyd Webber & Tim Rice",tags:["Emotional","Vocally Challenging"],score:93 ,
+   summary:"A sweeping musical about Eva Perón’s rise from a modest background to extraordinary public influence, told through ambition, politics, performance, and image. The show constantly asks whether the person the public sees is the same person behind the public story.",
+   good:["Excellent lead role","Powerful score","Large dramatic scope","Strong ensemble narration","Interesting political themes"],
+   bad:["Demanding lead vocals","Serious political material","Biographical structure","Less emphasis on comedy"],
+   gain:"You gain a powerful central character, strong ensemble storytelling, and a score built for dramatic performance.",
+   lose:"You give up a simple hero story, light comedy, and an intimate everyday setting.",
+   vocal:"Advanced",acting:"Advanced",dance:"Medium",energy:"High",emotion:"High",humor:"Low",
+   themes:"Power • Ambition • Politics • Image",
+   fit:"People who like vocal showcases, historical figures, politics, and ambitious theatrical storytelling.",
+   notfit:"People wanting a small-scale comedy or a plot with uncomplicated heroes.",
+   similar:["Hamilton","Les Misérables","Jesus Christ Superstar"]} ,  {name:"Hair",creator:"Galt MacDermot / Gerome Ragni / James Rado",tags:["High Energy","Emotional"],score:88 ,
+   summary:"A group of young people in 1960s New York forms a community built around music, freedom, identity, and questioning social expectations. The show is more about the feeling and culture of a generation than about one tightly structured plot.",
+   good:["Energetic ensemble","Distinctive rock score","Large group opportunities","Expressive movement","Strong sense of community"],
+   bad:["Loose episodic structure","Historical context is important","Serious social themes","Can be staging-intensive"],
+   gain:"You gain creative ensemble freedom, energetic rock music, and a show that can feel highly communal.",
+   lose:"You give up a traditional three-act plot, tidy character arcs, and conventional Broadway polish.",
+   vocal:"Medium",acting:"Medium",dance:"High",energy:"High",emotion:"Medium",humor:"High",
+   themes:"Freedom • Youth • War • Community",
+   fit:"Performers who like rock, ensemble-driven theatre, and unconventional structure.",
+   notfit:"People who want a traditional plot with clearly defined beginning, middle, and end.",
+   similar:["Rent","Godspell","Spring Awakening"]} ,  {name:"Rent",creator:"Jonathan Larson",tags:["Emotional","Vocally Challenging"],score:94 ,
+   summary:"A group of artists and friends in New York tries to build lives around creativity, love, friendship, and community while dealing with uncertainty and change. Its ensemble structure means each character contributes to a larger portrait of people trying to make meaning together.",
+   good:["Powerful ensemble","Strong rock score","Major character roles","Emotional storytelling","Contemporary feel"],
+   bad:["Serious themes","Demanding vocals","Emotionally intense scenes","Not a light family musical"],
+   gain:"You gain memorable rock music, strong ensemble relationships, and emotionally direct character work.",
+   lose:"You give up pure escapism, a fantasy setting, and a consistently cheerful mood.",
+   vocal:"Advanced",acting:"Advanced",dance:"Medium",energy:"High",emotion:"High",humor:"Medium",
+   themes:"Friendship • Art • Community • Identity",
+   fit:"People who enjoy contemporary rock, ensemble storytelling, and emotionally intense characters.",
+   notfit:"People wanting family-friendly fantasy, low emotional intensity, or a classic Broadway sound.",
+   similar:["Spring Awakening","Tick, Tick... Boom!","Avenue Q"]} ,  {name:"Avenue Q",creator:"Robert Lopez, Jeff Marx & Jeff Whitty",tags:["Funny"],score:88 ,
+   summary:"A group of young adults moves through work, friendship, identity, and uncertainty in a neighborhood where puppets and humans share the same world. Its comedy uses exaggerated characters and puppet staging to explore very ordinary problems about growing up.",
+   good:["Unique puppet concept","Strong comedy","Flexible cast possibilities","Memorable characters","Creative staging"],
+   bad:["Mature humor and themes","Not family-oriented","Comedy needs confident timing","Some material can divide audiences"],
+   gain:"You gain an unusual visual concept, big comic roles, and a show that lets staging become part of the joke.",
+   lose:"You give up a traditional family-musical tone, innocence, and straightforward realism.",
+   vocal:"Medium",acting:"Medium",dance:"Low",energy:"High",emotion:"High",humor:"Very High",
+   themes:"Adulthood • Friendship • Identity • Work",
+   fit:"Audiences and performers who enjoy satire, puppetry, and irreverent comedy.",
+   notfit:"Younger audiences or anyone looking for a wholesome family show.",
+   similar:["The Book of Mormon","Urinetown","The Producers"]} ,  {name:"Urinetown",creator:"Mark Hollmann & Greg Kotis",tags:["Funny","High Energy"],score:89 ,
+   summary:"In a city facing a water shortage, strict rules about public facilities create a conflict between ordinary citizens and the people controlling the system. The musical turns an absurd premise into a smart parody about power, rules, rebellion, and the stories people tell themselves.",
+   good:["Very funny satire","Strong ensemble","Creative theatrical style","Flexible staging","Energetic score"],
+   bad:["Absurd premise","Comedy timing is crucial","Political themes under the jokes","Less emotional realism"],
+   gain:"You gain inventive comedy, ensemble opportunities, and a show that can be clever without needing huge scenery.",
+   lose:"You give up realism, conventional world-building, and a purely sincere tone.",
+   vocal:"Medium",acting:"Medium",dance:"High",energy:"High",emotion:"High",humor:"Very High",
+   themes:"Politics • Environment • Power • Rebellion",
+   fit:"People who love satire, self-aware theatre, and ensemble comedy.",
+   notfit:"People looking for a realistic drama or a straightforward emotional story.",
+   similar:["Something Rotten!","The Producers","Spamalot"]} ,  {name:"Spring Awakening",creator:"Duncan Sheik & Steven Sater",tags:["Emotional","Vocally Challenging"],score:92 ,
+   summary:"A group of teenagers struggles with identity, authority, friendship, and the gap between what they feel and what the adults around them will allow them to understand. Its rock score and youthful perspective make the show intense and deeply character-driven.",
+   good:["Powerful rock score","Strong ensemble","Complex characters","Contemporary theatrical sound","Major acting opportunities"],
+   bad:["Very serious themes","Demanding emotional acting","Some lead vocals are challenging","Requires careful audience and production context"],
+   gain:"You gain intense ensemble acting, modern rock music, and a story built around difficult questions.",
+   lose:"You give up light comedy, family-musical comfort, and a relaxed viewing experience.",
+   vocal:"Advanced",acting:"Advanced",dance:"Medium",energy:"High",emotion:"High",humor:"Low",
+   themes:"Identity • Authority • Youth • Freedom",
+   fit:"People who enjoy serious contemporary theatre, rock, and character-driven ensemble stories.",
+   notfit:"People wanting a cheerful, low-stakes musical or a family-friendly comedy.",
+   similar:["Rent","Next to Normal","Dear Evan Hansen"]} ,  {name:"The 25th Annual Putnam County Spelling Bee",creator:"William Finn & Rachel Sheinkin",tags:["Funny"],score:91 ,
+   summary:"A group of young competitors enters a spelling bee carrying very different hopes, insecurities, family expectations, and ideas about winning. The simple competition becomes an opportunity to tell surprisingly personal stories while keeping the whole show playful and funny.",
+   good:["Excellent character roles","Comedy-focused ensemble","Flexible staging","Strong audition material","Fun audience interaction"],
+   bad:["Less spectacle","Comedy timing matters","Individual roles vary in size","Some productions use audience participation"],
+   gain:"You gain character-rich comedy, a manageable production world, and lots of opportunities for actors to make distinct choices.",
+   lose:"You give up fantasy spectacle, big dance sequences, and a huge visual world.",
+   vocal:"Medium",acting:"Medium",dance:"Low",energy:"Medium",emotion:"High",humor:"Very High",
+   themes:"Competition • Friendship • Growing up • Belonging",
+   fit:"Actors who love comedy, character work, and ensemble chemistry.",
+   notfit:"People seeking epic adventure, elaborate choreography, or dramatic spectacle.",
+   similar:["You’re a Good Man Charlie Brown","The Drowsy Chaperone","Matilda"]} ,  {name:"In the Heights",creator:"Lin-Manuel Miranda & Quiara Alegría Hudes",tags:["High Energy","Dance Heavy"],score:94 ,
+   summary:"A vibrant neighborhood in Washington Heights becomes the center of several connected stories about family, identity, dreams, money, belonging, and what it means to build a future. Different characters want different things, but their lives overlap enough that the whole community becomes part of the story.",
+   good:["Fantastic ensemble","High-energy dance","Distinctive contemporary score","Multiple strong roles","Strong community themes"],
+   bad:["Fast vocals","Choreography can be demanding","Many storylines to balance","Requires strong ensemble chemistry"],
+   gain:"You gain rhythmic variety, movement, community storytelling, and many meaningful roles instead of one single star.",
+   lose:"You give up an intimate one-character story and a simple plot with only one central goal.",
+   vocal:"Advanced",acting:"Advanced",dance:"High",energy:"Very High",emotion:"High",humor:"High",
+   themes:"Community • Family • Dreams • Identity",
+   fit:"Performers who enjoy hip-hop and Latin influences, dance, ensemble work, and contemporary stories.",
+   notfit:"People wanting a quiet, low-movement production or a very simple plot.",
+   similar:["Hamilton","West Side Story","Bring It On"]} ,  {name:"9 to 5: The Musical",creator:"Dolly Parton / Patricia Resnick",tags:["Funny","High Energy"],score:84 ,
+   summary:"Three coworkers discover that their frustrations at work can become the starting point for friendship, confidence, and change. The musical balances workplace comedy with a story about people learning to take themselves seriously and push back against unfair expectations.",
+   good:["Funny central trio","Catchy score","Strong character roles","Accessible contemporary story","Good ensemble opportunities"],
+   bad:["Broad comedy style","Workplace themes drive the plot","Less emotional complexity than some dramas","Some staging depends on comic timing"],
+   gain:"You gain upbeat comedy, strong featured roles, and a production that can entertain without needing fantasy spectacle.",
+   lose:"You give up epic drama, complex mythology, and very high emotional intensity.",
+   vocal:"Medium",acting:"Medium",dance:"Medium",energy:"High",emotion:"Medium",humor:"High",
+   themes:"Friendship • Work • Confidence • Fairness",
+   fit:"People who want a funny, accessible contemporary musical with multiple strong roles.",
+   notfit:"People looking for dark drama, fantasy, or a highly intricate plot.",
+   similar:["Legally Blonde","Waitress","Sister Act"]} ,  {name:"Kinky Boots",creator:"Cyndi Lauper & Harvey Fierstein",tags:["Emotional","High Energy"],score:93 ,
+   summary:"A struggling shoe factory and an unexpected creative partnership bring together two people who seem completely different on the surface. Their work together becomes a story about friendship, confidence, acceptance, family expectations, and finding a way forward instead of staying stuck.",
+   good:["Uplifting story","Strong ensemble","Dance opportunities","Memorable score","Good mix of comedy and heart"],
+   bad:["Some difficult vocals","Emotional themes can be serious","Production needs clear visual identity","Several characters need strong acting"],
+   gain:"You gain warmth, humor, dance, and a big ensemble story about people learning from one another.",
+   lose:"You give up bleak realism, minimalist storytelling, and a completely quiet tone.",
+   vocal:"Medium",acting:"Advanced",dance:"High",energy:"High",emotion:"High",humor:"High",
+   themes:"Friendship • Acceptance • Family • Business",
+   fit:"People who want an uplifting contemporary show with heart, humor, and performance energy.",
+   notfit:"People looking for a dark psychological drama or a purely traditional classic.",
+   similar:["The Prom","La Cage aux Folles","Sister Act"]} ,  {name:"Beautiful: The Carole King Musical",creator:"Douglas McGrath / Carole King",tags:["Emotional"],score:91 ,
+   summary:"A biography-inspired musical follows Carole King from young songwriter to major recording artist while tracing the friendships, creative partnerships, and changing relationships around her. The story is shaped by the songs she and her contemporaries wrote and by her growing confidence as a performer.",
+   good:["Recognizable music","Strong central role","Biography-inspired storytelling","Ensemble opportunities","Accessible audience appeal"],
+   bad:["Jukebox/biographical structure","Some roles are smaller","Historical context is important","Less fantasy or spectacle"],
+   gain:"You gain a music-centered story, familiar songs, and a strong character journey built around creativity.",
+   lose:"You give up fantasy worlds, original narrative twists, and large-scale visual spectacle.",
+   vocal:"Medium",acting:"Medium",dance:"Medium",energy:"Medium",emotion:"High",humor:"Medium",
+   themes:"Music • Ambition • Growth • Relationships",
+   fit:"People who enjoy music biographies, songwriting stories, and recognizable pop material.",
+   notfit:"People wanting a completely original score or high-concept fantasy.",
+   similar:["Jersey Boys","Tina: The Tina Turner Musical","Girl From the North Country"]} ,  {name:"Jersey Boys",creator:"Bob Gaudio / Marshall Brickman & Rick Elice",tags:["High Energy","Vocally Challenging"],score:92 ,
+   summary:"The story of The Four Seasons follows four young musicians as they rise from neighborhood performers to major stars while navigating friendship, money, ambition, and changing loyalties. Different members occasionally narrate the story, giving the audience several perspectives on the same rise to fame.",
+   good:["Strong vocal ensemble","Distinct characters","Recognizable music","Clear dramatic arc","Good storytelling device"],
+   bad:["Biographical structure","Several demanding vocal parts","Less choreography-driven than some jukebox shows","Serious interpersonal conflicts"],
+   gain:"You gain strong quartet singing, a clear ensemble structure, and a compelling rise-and-fall story.",
+   lose:"You give up fantasy spectacle, a large dance focus, and a completely original score.",
+   vocal:"Advanced",acting:"Advanced",dance:"Medium",energy:"High",emotion:"High",humor:"Medium",
+   themes:"Music • Friendship • Fame • Loyalty",
+   fit:"Strong singers who like harmony, biography-inspired stories, and ensemble relationships.",
+   notfit:"People wanting fantasy, nonstop dance, or a traditional original musical-theatre score.",
+   similar:["Beautiful: The Carole King Musical","Dreamgirls","Ain’t Too Proud"]} ,  {name:"Tina: The Tina Turner Musical",creator:"Katori Hall / Frank Ketelaar / Kees Prins",tags:["Emotional","High Energy","Vocally Challenging"],score:92 ,
+   summary:"A stage biography follows Tina Turner from her early career through the challenges and decisions that shaped her into a major performer. The production focuses on artistic identity, perseverance, performance, and the effort involved in building a life and career on your own terms.",
+   good:["Powerful lead role","High-energy music","Strong dance opportunities","Big performance moments","Clear character journey"],
+   bad:["Very demanding lead","Serious biographical material","High physical stamina","Music-centered structure"],
+   gain:"You gain a powerhouse performer role, major musical moments, and choreography that can make the stage feel huge.",
+   lose:"You give up a low-intensity production, ensemble-first focus, and a quieter dramatic style.",
+   vocal:"Advanced",acting:"Advanced",dance:"High",energy:"Very High",emotion:"High",humor:"Medium",
+   themes:"Perseverance • Music • Identity • Fame",
+   fit:"Strong singers and performers who love high-energy concert-style theatre.",
+   notfit:"People wanting small, intimate drama or a mostly dialogue-driven musical.",
+   similar:["Beautiful: The Carole King Musical","Jersey Boys","MJ"]} ,  {name:"MJ",creator:"Lynn Nottage & Christopher Wheeldon",tags:["High Energy","Dance Heavy","Vocally Challenging"],score:89 ,
+   summary:"A dance-heavy production looks at Michael Jackson during the creation of a major concert, using rehearsal and performance as a way to revisit his career. The structure places a strong emphasis on artistry, movement, collaboration, and the pressure of creating a spectacular live show.",
+   good:["Exceptional dance opportunities","Strong performance focus","High-energy ensemble","Large musical moments","Visually dynamic staging"],
+   bad:["Very demanding choreography","Performance-focused structure","Requires stamina and precision","Biographical context matters"],
+   gain:"You gain major dance and performance opportunities with a production built around movement and spectacle.",
+   lose:"You give up low physical demands, a quiet chamber style, and a traditional plot-first structure.",
+   vocal:"Advanced",acting:"Advanced",dance:"Very High",energy:"Very High",emotion:"High",humor:"Medium",
+   themes:"Art • Performance • Creativity • Legacy",
+   fit:"Dancers, singers, and performers who love concert energy and large-scale movement.",
+   notfit:"People wanting minimal choreography or a quiet character drama.",
+   similar:["Tina: The Tina Turner Musical","A Chorus Line","The Lion King"]} ,  {name:"& Juliet",creator:"Max Martin / David West Read",tags:["High Energy","Dance Heavy"],score:92 ,
+   summary:"The musical imagines a new path for Juliet after Shakespeare’s famous story, using pop songs to build a playful world about independence, friendship, identity, and choosing your own future. It treats the original ending as a starting point rather than a fixed destiny.",
+   good:["Huge pop energy","Strong featured roles","Fun choreography","Comedy","Colorful ensemble"],
+   bad:["Pop/jukebox-style structure","Less traditional musical-theatre sound","High dance energy","Story is intentionally playful"],
+   gain:"You gain catchy pop, modern staging, comedy, and lots of performance energy.",
+   lose:"You give up a classic Broadway sound, realistic tone, and a serious literary adaptation.",
+   vocal:"Medium",acting:"Medium",dance:"High",energy:"Very High",emotion:"High",humor:"High",
+   themes:"Independence • Friendship • Identity • New beginnings",
+   fit:"People who love pop music, dance, comedy, and modern theatrical style.",
+   notfit:"People wanting a classic golden-age score or a very serious Shakespeare adaptation.",
+   similar:["Six","Moulin Rouge!","Mamma Mia!"]} ,  {name:"Jagged Little Pill",creator:"Alanis Morissette / Diablo Cody / Tom Kitt",tags:["Emotional","Vocally Challenging"],score:88 ,
+   summary:"A contemporary family musical follows several characters as their different struggles force them to confront identity, relationships, honesty, and the stories families tell themselves. The ensemble structure lets multiple perspectives shape the same central family story.",
+   good:["Powerful contemporary score","Large ensemble","Multiple strong roles","Relevant themes","Mix of rock and theatrical music"],
+   bad:["Serious subject matter","Emotionally demanding","Many storylines","Requires careful handling of complex topics"],
+   gain:"You gain modern rock, ensemble depth, and a production full of contrasting character perspectives.",
+   lose:"You give up simple escapism, a single central protagonist, and a light family tone.",
+   vocal:"Advanced",acting:"Advanced",dance:"Medium",energy:"High",emotion:"High",humor:"Medium",
+   themes:"Family • Identity • Truth • Change",
+   fit:"People who like contemporary ensemble drama, rock, and layered family stories.",
+   notfit:"People looking for cheerful family entertainment or a simple plot.",
+   similar:["Next to Normal","Rent","Dear Evan Hansen"]} ,  {name:"The Book of Mormon",creator:"Trey Parker, Matt Stone & Robert Lopez",tags:["Funny","High Energy"],score:95 ,
+   summary:"Two young missionaries enter an unfamiliar community expecting a straightforward assignment, only to discover that their assumptions do not match reality. The musical turns that mismatch into fast-paced satire about friendship, belief, expectations, and how people respond when their worldview is challenged.",
+   good:["Very strong comedy","Energetic ensemble","Distinct character roles","Fast pacing","Inventive staging"],
+   bad:["Mature satire and humor","Comedy requires confident timing","Some audience members may find the tone challenging","Less suitable for a school-style family production"],
+   gain:"You gain sharp comic roles, fast theatrical pacing, and a show built around fearless ensemble performance.",
+   lose:"You give up a sincere family-musical tone, gentle humor, and low-stakes subject matter.",
+   vocal:"Advanced",acting:"Advanced",dance:"Medium",energy:"High",emotion:"High",humor:"Very High",
+   themes:"Faith • Friendship • Expectations • Culture",
+   fit:"Audiences and performers who enjoy bold satire and highly comic musical theatre.",
+   notfit:"People wanting wholesome family entertainment or an earnest, traditional musical.",
+   similar:["Avenue Q","The Producers","Spamalot"]} ,  {name:"Spamalot",creator:"Eric Idle & John Du Prez",tags:["Funny","High Energy"],score:90 ,
+   summary:"A wildly comic quest musical sends a group of characters through an exaggerated medieval world filled with parody, absurdity, and theatrical surprises. It deliberately plays with the conventions of epic stories while giving the cast lots of opportunities to make bold comic choices.",
+   good:["Huge comedy potential","Flexible ensemble","Energetic staging","Parody-friendly concept","Strong character roles"],
+   bad:["Very silly tone","Comedy timing is essential","Some productions need creative effects","Not emotionally realistic"],
+   gain:"You gain freedom to be ridiculous, large comic performances, and lots of ensemble opportunities.",
+   lose:"You give up realism, subtle storytelling, and a serious dramatic atmosphere.",
+   vocal:"Medium",acting:"Medium",dance:"High",energy:"High",emotion:"High",humor:"Very High",
+   themes:"Adventure • Friendship • Parody • Courage",
+   fit:"Performers who love parody, physical comedy, and exaggerated theatre.",
+   notfit:"People looking for grounded realism or emotionally serious drama.",
+   similar:["Monty Python’s Spamalot","Something Rotten!","The Producers"]} ,  {name:"Monty Python’s Spamalot",creator:"Eric Idle & John Du Prez",tags:["Funny","High Energy"],score:90 ,
+   summary:"A deliberately ridiculous medieval adventure turns familiar quest-story conventions into a fast-moving comedy. The musical thrives on parody, unexpected characters, and actors who are willing to commit completely to the joke.",
+   good:["Big comic opportunities","Strong ensemble","Flexible staging","High audience energy","Playful theatricality"],
+   bad:["Broad humor","Timing matters a lot","Less emotional depth","Can feel intentionally chaotic"],
+   gain:"You gain comic freedom, lively ensemble work, and a production that can be staged with lots of personality.",
+   lose:"You give up subtle realism, a serious dramatic arc, and quiet storytelling.",
+   vocal:"Medium",acting:"Medium",dance:"High",energy:"High",emotion:"High",humor:"Very High",
+   themes:"Adventure • Parody • Friendship • Comedy",
+   fit:"Comedy-focused performers who love absurdity and theatrical parody.",
+   notfit:"People who want realistic drama or emotionally grounded storytelling.",
+   similar:["Spamalot","Something Rotten!","The Producers"]} ,  {name:"Young Frankenstein",creator:"Mel Brooks",tags:["Funny","High Energy"],score:89 ,
+   summary:"A reluctant heir travels to his family’s castle and becomes involved in a bizarre experiment that turns into a comic gothic adventure. The musical uses the language of old monster movies as a playground for broad comedy, character acting, and theatrical silliness.",
+   good:["Excellent comedy roles","Strong character acting","Fun ensemble","Stylized visual world","Dance and movement opportunities"],
+   bad:["Broad humor","Comedy timing is crucial","Some production effects need planning","Less emotional depth"],
+   gain:"You gain larger-than-life characters, visual comedy, and a chance for actors to play with style.",
+   lose:"You give up subtle realism, serious drama, and a very grounded emotional story.",
+   vocal:"Medium",acting:"Medium",dance:"High",energy:"High",emotion:"High",humor:"Very High",
+   themes:"Family • Invention • Identity • Comedy",
+   fit:"Performers who love character comedy, parody, and gothic theatrical worlds.",
+   notfit:"People wanting understated acting or a deeply serious dramatic musical.",
+   similar:["The Addams Family","Beetlejuice","The Producers"]} ,  {name:"The Producers",creator:"Mel Brooks & Thomas Meehan",tags:["Funny","High Energy"],score:94 ,
+   summary:"Two men in the theatre business attempt a scheme that they think will guarantee failure, but their plan rapidly creates more chaos than expected. The musical satirizes producers, performers, audiences, and Broadway itself while giving its actors huge comic personalities to play.",
+   good:["Huge comic roles","Theatre satire","Strong ensemble","Energetic choreography","Flexible comedic staging"],
+   bad:["Very broad humor","Mature satire","Timing is everything","Less emotional depth than character dramas"],
+   gain:"You gain comedy, theatre-insider jokes, big characters, and lots of opportunities for confident performance.",
+   lose:"You give up subtle drama, realism, and a serious emotional journey.",
+   vocal:"Medium",acting:"Advanced",dance:"Medium",energy:"High",emotion:"High",humor:"Very High",
+   themes:"Theater • Friendship • Ambition • Comedy",
+   fit:"People who love musical-theatre comedy, satire, and big personalities.",
+   notfit:"People looking for grounded drama or emotionally quiet storytelling.",
+   similar:["Spamalot","Avenue Q","Something Rotten!"]} ,  {name:"The Drowsy Chaperone",creator:"Bob Martin, Lisa Lambert, Greg Morrison & Don McKellar",tags:["Funny"],score:92 ,
+   summary:"A dedicated musical-theatre fan plays an old favorite recording and imagines the fictional musical coming to life around him. The result is a celebration of theatre itself, mixing a light story with commentary about why people love watching musicals.",
+   good:["Theatre-about-theatre concept","Funny character roles","Flexible staging","Strong ensemble","Charming old-school style"],
+   bad:["Self-referential structure","Comedy timing matters","Smaller scale than mega-musicals","Narrator carries important transitions"],
+   gain:"You gain a playful celebration of musical theatre, lots of character work, and staging that can be very inventive.",
+   lose:"You give up a huge cinematic spectacle and a conventional standalone fantasy world.",
+   vocal:"Medium",acting:"Advanced",dance:"Medium",energy:"Medium",emotion:"High",humor:"Very High",
+   themes:"Theater • Imagination • Romance • Comedy",
+   fit:"Theatre fans who enjoy backstage jokes, classic styles, and character comedy.",
+   notfit:"People wanting a realistic drama or giant spectacle-first production.",
+   similar:["Something Rotten!","Urinetown","A Chorus Line"]} ,  {name:"The Full Monty",creator:"David Yazbek & Terrence McNally",tags:["Emotional","Funny"],score:87 ,
+   summary:"A group of unemployed friends decide to put on an unexpected show as a way to earn money and rebuild confidence. The comedy grows into a story about friendship, dignity, family pressure, and finding a reason to believe in yourself again.",
+   good:["Strong ensemble","Character-driven comedy","Meaningful friendships","Good comic roles","Clear emotional arc"],
+   bad:["Adult-oriented themes","Some serious family issues","Broad comedy","Several roles need strong character acting"],
+   gain:"You gain an ensemble story with real emotional stakes beneath the comedy and lots of room for character choices.",
+   lose:"You give up fantasy, huge spectacle, and a purely youth-oriented story.",
+   vocal:"Medium",acting:"Medium",dance:"Medium",energy:"High",emotion:"High",humor:"High",
+   themes:"Friendship • Work • Confidence • Community",
+   fit:"People who enjoy ensemble comedy that still gives characters real depth.",
+   notfit:"People wanting family-focused fantasy or a very light, consequence-free comedy.",
+   similar:["Kinky Boots","Waitress","Come From Away"]} ,  {name:"Priscilla Queen of the Desert",creator:"Stephan Elliott / Various",tags:["High Energy","Dance Heavy"],score:86 ,
+   summary:"Three performers travel across the Australian outback for a performance job and discover that the journey changes their friendships and sense of belonging. The production uses pop music, colorful design, and comedy to build a celebration of performance and community.",
+   good:["Colorful visual style","Huge dance opportunities","Energetic music","Strong friendship story","Big character performances"],
+   bad:["Mature themes","Jukebox-style structure","High costume and movement demands","Not designed as subtle drama"],
+   gain:"You gain spectacle, costume creativity, dance, and a lively performance-centered atmosphere.",
+   lose:"You give up quiet realism, traditional storytelling, and a low-key production design.",
+   vocal:"Medium",acting:"Medium",dance:"Very High",energy:"Very High",emotion:"High",humor:"High",
+   themes:"Friendship • Identity • Performance • Travel",
+   fit:"Performers who love bold visual theatre, pop music, dance, and comedy.",
+   notfit:"People wanting an intimate, serious chamber musical or a traditional family show.",
+   similar:["Moulin Rouge!","& Juliet","Mamma Mia!"]} ,  {name:"Sister Act",creator:"Alan Menken & Glenn Slater / Cheri Steinkellner",tags:["Funny","High Energy"],score:89 ,
+   summary:"An entertainer is placed in a convent for protection and unexpectedly becomes the force that helps its choir rediscover confidence and joy. The story builds its comedy around the contrast between her personality and the convent community, while the music becomes a way for the characters to grow closer.",
+   good:["Big ensemble energy","Excellent choir moments","Comedy","Strong featured roles","Uplifting tone"],
+   bad:["Straightforward plot","Several roles depend on comic timing","High-energy numbers need coordination","Less dramatic complexity"],
+   gain:"You gain joyful ensemble singing, comedy, and a production that can feel communal from beginning to end.",
+   lose:"You give up dark realism, experimental structure, and heavy psychological drama.",
+   vocal:"Medium",acting:"Medium",dance:"High",energy:"High",emotion:"High",humor:"High",
+   themes:"Friendship • Community • Confidence • Music",
+   fit:"Groups that love singing, comedy, character acting, and uplifting stories.",
+   notfit:"People looking for intense realism or a highly complex plot.",
+   similar:["9 to 5: The Musical","Kinky Boots","Hairspray"]} ,  {name:"Xanadu",creator:"Douglas Carter Beane / Jeff Lynne & John Farrar",tags:["Funny","High Energy","Dance Heavy"],score:82 ,
+   summary:"A Greek muse arrives to inspire an artist to create a roller-disco dream, but her mission becomes complicated when she gets involved in the human world. The musical leans into fantasy, camp, comedy, and intentionally playful theatrical style.",
+   good:["Very playful tone","Strong movement opportunities","Flexible staging","Comedy","Colorful visual potential"],
+   bad:["Campy style is not for everyone","Jukebox-influenced score","Fantasy premise","Physical staging can be demanding"],
+   gain:"You gain permission to be silly, colorful, and theatrical with a lot of room for movement and comedy.",
+   lose:"You give up realism, subtle drama, and a traditional musical-theatre atmosphere.",
+   vocal:"Medium",acting:"Medium",dance:"Very High",energy:"High",emotion:"High",humor:"Very High",
+   themes:"Creativity • Joy • Romance • Fantasy",
+   fit:"Performers who enjoy camp, comedy, fantasy, and highly stylized theatre.",
+   notfit:"People looking for grounded realism or understated storytelling.",
+   similar:["Mamma Mia!","& Juliet","Pippin"]} ,  {name:"The Wiz",creator:"Charlie Smalls",tags:["High Energy","Dance Heavy"],score:90 ,
+   summary:"A vibrant reimagining of the Oz story follows Dorothy and her friends as they discover courage, confidence, friendship, and the meaning of home. The musical combines soul, funk, dance, and imaginative stage pictures to create a distinct world rather than simply copying a familiar fairy tale.",
+   good:["Strong ensemble","Excellent dance opportunities","Distinctive musical style","Large visual potential","Big featured roles"],
+   bad:["Dance demands can be high","Large production can help","Several lead vocals are demanding","Staging works best with strong design choices"],
+   gain:"You gain movement, personality, soulful music, and a chance to create a colorful theatrical world.",
+   lose:"You give up a low-dance, minimalist production and a strictly traditional Oz style.",
+   vocal:"Advanced",acting:"Medium",dance:"Very High",energy:"Very High",emotion:"High",humor:"High",
+   themes:"Friendship • Courage • Home • Identity",
+   fit:"Performers who love dance, energy, ensemble work, and expressive musical styles.",
+   notfit:"People wanting quiet chamber theatre or minimal movement.",
+   similar:["Wicked","The Lion King","Pippin"]} ,  {name:"Once Upon a Mattress",creator:"Mary Rodgers / Jay Thompson, Marshall Barer & Dean Fuller",tags:["Funny","High Energy"],score:85 ,
+   summary:"A comic spin on the princess-and-the-pea fairy tale turns royal expectations into a fast-moving ensemble comedy. The characters constantly complicate the traditional fairy-tale rules, making the story more about personality and timing than about a serious fantasy quest.",
+   good:["Big comedy roles","Flexible production","Ensemble-friendly","Dance opportunities","Classic musical charm"],
+   bad:["Very light story","Comedy timing is important","Traditional musical style","Less emotional depth"],
+   gain:"You gain a fun ensemble comedy that can be tailored to the personalities of the cast.",
+   lose:"You give up heavy drama, complex themes, and a realistic setting.",
+   vocal:"Medium",acting:"Medium",dance:"High",energy:"Medium",emotion:"High",humor:"Very High",
+   themes:"Love • Family • Expectations • Comedy",
+   fit:"Groups who want a playful fairy-tale comedy with lots of character roles.",
+   notfit:"People looking for serious drama or emotionally intense storytelling.",
+   similar:["The Drowsy Chaperone","The Music Man","Spamalot"]} ,  {name:"The Secret Garden",creator:"Lucy Simon & Marsha Norman",tags:["Emotional"],score:90 ,
+   summary:"A lonely child arrives in England after a major family loss and discovers a hidden garden whose restoration becomes connected to the healing of the people around her. The story mixes mystery, family, memory, friendship, and transformation in a lyrical setting.",
+   good:["Beautiful score","Atmospheric storytelling","Strong young roles","Rich character arcs","Excellent ensemble texture"],
+   bad:["Slower pace","Serious family themes","Some demanding vocals","More intimate than spectacle-driven"],
+   gain:"You gain emotional character work, atmosphere, and a story where small changes can feel very meaningful.",
+   lose:"You give up nonstop comedy, huge spectacle, and fast pacing.",
+   vocal:"Advanced",acting:"Advanced",dance:"Low",energy:"Medium",emotion:"High",humor:"Medium",
+   themes:"Family • Grief • Friendship • Healing",
+   fit:"People who like heartfelt stories, mystery, family relationships, and lyrical music.",
+   notfit:"People wanting constant action, broad comedy, or a giant visual spectacle.",
+   similar:["Matilda","The Light in the Piazza","Annie"]} ,  {name:"Ragtime",creator:"Stephen Flaherty & Lynn Ahrens",tags:["Emotional","Vocally Challenging"],score:93 ,
+   summary:"Several American families and communities become connected as the country changes around them in the early twentieth century. The musical brings together stories about class, immigration, family, ambition, and social change to create a large-scale ensemble portrait of a nation in transition.",
+   good:["Epic ensemble scope","Many substantial roles","Rich score","Historical storytelling","Complex character relationships"],
+   bad:["Dense story","Serious social themes","Large cast benefits the show","Requires historical context"],
+   gain:"You gain many strong roles, sweeping musical storytelling, and a show that can make a large cast feel essential.",
+   lose:"You give up simplicity, a single protagonist, and an easy-going tone.",
+   vocal:"Advanced",acting:"Advanced",dance:"Medium",energy:"High",emotion:"High",humor:"Low",
+   themes:"History • Class • Immigration • Change",
+   fit:"People who enjoy historical epics, ensemble storytelling, and emotionally layered musicals.",
+   notfit:"People wanting a short, simple comedy or a single-character story.",
+   similar:["Parade","Hamilton","Les Misérables"]} ,  {name:"Parade",creator:"Jason Robert Brown & Alfred Uhry",tags:["Emotional","Vocally Challenging"],score:91 ,
+   summary:"A historical drama follows Leo and Lucille Frank as they face a case that becomes consumed by public opinion, politics, prejudice, and pressure. Their personal relationship becomes an important counterpoint to the larger questions about justice and how stories get shaped by society.",
+   good:["Exceptional dramatic roles","Sophisticated score","Powerful relationship story","Historical depth","Strong ensemble atmosphere"],
+   bad:["Very serious subject matter","Vocally demanding","Emotionally intense","Requires careful historical context"],
+   gain:"You gain complex acting opportunities, rich musical writing, and a story that rewards close attention.",
+   lose:"You give up light entertainment, broad comedy, and an easy emotional experience.",
+   vocal:"Advanced",acting:"Advanced",dance:"Low",energy:"High",emotion:"High",humor:"Low",
+   themes:"Justice • Marriage • Prejudice • History",
+   fit:"People who want serious historical drama and challenging acting and vocal work.",
+   notfit:"People looking for family-friendly comedy or a breezy musical.",
+   similar:["Ragtime","Evita","Les Misérables"]} ,  {name:"Assassins",creator:"Stephen Sondheim & John Weidman",tags:["Emotional"],score:87 ,
+   summary:"A provocative historical musical examines a group of people connected to attempts on U.S. presidents and the ideas, grievances, and fantasies surrounding those acts. Rather than presenting a simple history lesson, it asks difficult questions about fame, anger, politics, and the desire to be remembered.",
+   good:["Unusual concept","Complex character material","Sophisticated score","Strong ensemble roles","Thought-provoking structure"],
+   bad:["Dark historical themes","Requires careful context","Not family entertainment","More conceptual than plot-driven"],
+   gain:"You gain unusual character studies, layered themes, and a production that can generate serious discussion.",
+   lose:"You give up comfort, simplicity, and a traditionally uplifting musical arc.",
+   vocal:"Advanced",acting:"Advanced",dance:"Low",energy:"High",emotion:"High",humor:"Low",
+   themes:"History • Politics • Discontent • Identity",
+   fit:"People interested in challenging historical theatre and complex ensemble storytelling.",
+   notfit:"People wanting straightforward family entertainment or a feel-good ending.",
+   similar:["Cabaret","Company","Sweeney Todd"]} ,  {name:"Sunday in the Park with George",creator:"Stephen Sondheim & James Lapine",tags:["Emotional"],score:94 ,
+   summary:"An artist works obsessively on a painting while struggling to balance creativity, relationships, and the people around him. The musical then connects those ideas to a later generation, exploring what artists leave behind and what it costs to make something that lasts.",
+   good:["Exceptional score","Art-centered storytelling","Rich acting material","Creative staging possibilities","Strong themes"],
+   bad:["Abstract structure","Slow, reflective pacing","Less conventional plot","Requires thoughtful performances"],
+   gain:"You gain artistic depth, nuanced character work, and a show that can reward audiences who like symbolism and ideas.",
+   lose:"You give up straightforward adventure, broad comedy, and rapid pacing.",
+   vocal:"Advanced",acting:"Advanced",dance:"Low",energy:"Medium",emotion:"High",humor:"Low",
+   themes:"Art • Legacy • Creativity • Relationships",
+   fit:"People who enjoy thoughtful theatre, art, philosophy, and character-driven stories.",
+   notfit:"People looking for simple plots or constant high-energy action.",
+   similar:["Passion","Company","The Light in the Piazza"]} ,  {name:"Merrily We Roll Along",creator:"Stephen Sondheim & George Furth",tags:["Emotional"],score:93 ,
+   summary:"Three friends in the creative world are shown at different points in their lives as the story moves backward through their shared history. Knowing where their relationships eventually lead makes every earlier moment feel different, turning friendship and ambition into the center of the show.",
+   good:["Complex relationships","Sophisticated score","Strong acting roles","Interesting structure","Excellent ensemble work"],
+   bad:["Backward chronology","Emotionally reflective","Requires close attention","Not spectacle-focused"],
+   gain:"You gain layered character storytelling and a structure that can make the audience rethink every scene.",
+   lose:"You give up linear storytelling, simple relationships, and a spectacle-first production.",
+   vocal:"Advanced",acting:"Advanced",dance:"Low",energy:"Medium",emotion:"High",humor:"Medium",
+   themes:"Friendship • Ambition • Time • Memory",
+   fit:"People who love character studies, friendships, and structurally unusual musicals.",
+   notfit:"People who prefer straightforward chronology or action-driven stories.",
+   similar:["Company","Follies","Sunday in the Park with George"]} ,  {name:"Falsettos",creator:"William Finn & James Lapine",tags:["Emotional","Vocally Challenging"],score:93 ,
+   summary:"A small group of people keeps redefining what family means as friendships, relationships, parenting, and identity change around them. The musical is intimate, funny, and emotional, relying more on character relationships than on scenery or spectacle.",
+   good:["Excellent character writing","Strong small-cast potential","Mix of humor and emotion","Contemporary feel","Rich ensemble relationships"],
+   bad:["Emotionally intense","Mature themes","Limited spectacle","Requires strong acting"],
+   gain:"You gain a tight ensemble, rich relationships, and a production where acting can carry enormous weight.",
+   lose:"You give up large visual spectacle, huge dance numbers, and a simple family story.",
+   vocal:"Advanced",acting:"Advanced",dance:"Low",energy:"Medium",emotion:"High",humor:"Medium",
+   themes:"Family • Identity • Relationships • Change",
+   fit:"Actors who love intimate ensemble drama and relationship-centered theatre.",
+   notfit:"People wanting fantasy, giant productions, or simple family comedy.",
+   similar:["Fun Home","Next to Normal","Company"]} ,  {name:"Fun Home",creator:"Lisa Kron & Jeanine Tesori",tags:["Emotional","Vocally Challenging"],score:95 ,
+   summary:"An artist looks back on her childhood, her family, and the ways people reveal or hide important parts of themselves. The musical moves between different moments in her life, letting the audience see the same family from multiple perspectives.",
+   good:["Exceptional storytelling","Strong acting roles","Innovative structure","Intimate staging","Mix of humor and emotion"],
+   bad:["Nonlinear structure","Serious family themes","Vocally demanding moments","Less spectacle"],
+   gain:"You gain layered character work, a modern score, and a story that trusts the audience to connect the pieces.",
+   lose:"You give up a linear plot, big dance sequences, and fantasy spectacle.",
+   vocal:"Advanced",acting:"Advanced",dance:"Low",energy:"Medium",emotion:"High",humor:"Medium",
+   themes:"Family • Identity • Memory • Art",
+   fit:"People who enjoy intimate modern musicals, family stories, and thoughtful character work.",
+   notfit:"People wanting a simple chronological adventure or giant production numbers.",
+   similar:["Falsettos","Next to Normal","Spring Awakening"]} ,  {name:"Caroline, or Change",creator:"Jeanine Tesori & Tony Kushner",tags:["Emotional","Vocally Challenging"],score:89 ,
+   summary:"Set during the Civil Rights era, the musical follows a complicated relationship between a child and the caregiver who works in his household. Their everyday interactions gradually reveal larger questions about class, family, responsibility, and the changes happening outside the home.",
+   good:["Rich characters","Sophisticated score","Historical depth","Strong acting opportunities","Thoughtful themes"],
+   bad:["Slow, reflective pacing","Serious material","Complex character relationships","Requires historical context"],
+   gain:"You gain nuanced storytelling, distinctive music, and a chance to explore large social themes through small personal moments.",
+   lose:"You give up broad comedy, spectacle, and rapid plot movement.",
+   vocal:"Advanced",acting:"Advanced",dance:"Low",energy:"Medium",emotion:"High",humor:"Low",
+   themes:"Family • Class • Change • History",
+   fit:"People who like thoughtful historical drama and intimate character stories.",
+   notfit:"People wanting a bright, fast-paced musical or a simple family comedy.",
+   similar:["Ragtime","Parade","Fun Home"]} ,  {name:"Next to Normal",creator:"Tom Kitt & Brian Yorkey",tags:["Emotional","Vocally Challenging"],score:95 ,
+   summary:"A contemporary rock musical follows a family trying to understand one another while living through long-running emotional struggles and difficult changes. The story focuses on memory, relationships, identity, and how different family members experience the same events.",
+   good:["Powerful rock score","Outstanding lead roles","Strong family ensemble","Deep emotional material","Contemporary sound"],
+   bad:["Very intense themes","Demanding vocals","Emotionally difficult scenes","Not family entertainment"],
+   gain:"You gain major acting and vocal opportunities, a strong rock score, and a family story with multiple perspectives.",
+   lose:"You give up light escapism, a cheerful tone, and an easy viewing experience.",
+   vocal:"Advanced",acting:"Advanced",dance:"Medium",energy:"High",emotion:"High",humor:"Low",
+   themes:"Family • Identity • Memory • Recovery",
+   fit:"Performers who enjoy serious contemporary rock and emotionally complex family stories.",
+   notfit:"People looking for light comedy, fantasy, or a family-friendly musical.",
+   similar:["Rent","Spring Awakening","Dear Evan Hansen"]} ,  {name:"A Little Night Music",creator:"Stephen Sondheim & Hugh Wheeler",tags:["Emotional","Funny"],score:91 ,
+   summary:"Several adults with complicated romantic histories become entangled over one summer, creating a sophisticated comedy about desire, timing, age, and second chances. The show relies heavily on character relationships, wit, and a graceful score rather than spectacle.",
+   good:["Elegant score","Strong acting roles","Smart comedy","Interesting relationship dynamics","Flexible staging"],
+   bad:["Dialogue-heavy","Mature romantic themes","Less spectacle","Subtle humor requires careful acting"],
+   gain:"You gain sophisticated character comedy, nuanced relationships, and a beautifully structured score.",
+   lose:"You give up action, spectacle, and a simple romance.",
+   vocal:"Advanced",acting:"Advanced",dance:"Medium",energy:"Medium",emotion:"High",humor:"High",
+   themes:"Love • Relationships • Age • Second chances",
+   fit:"People who enjoy witty relationship stories and sophisticated musical theatre.",
+   notfit:"People wanting youthful comedy, fantasy, or dance-heavy spectacle.",
+   similar:["Company","Follies","My Fair Lady"]} ,  {name:"Grey Gardens",creator:"Scott Frankel, Michael Korie & Doug Wright",tags:["Emotional"],score:88 ,
+   summary:"Inspired by the lives of two women living in a once-grand family home, the musical explores memory, identity, family expectations, and the passage of time. Different time periods let the audience see how relationships and dreams change across a lifetime.",
+   good:["Exceptional character work","Interesting dual-period structure","Intimate staging","Strong acting roles","Distinctive atmosphere"],
+   bad:["Very intimate","Reflective pacing","Serious themes","Less ensemble spectacle"],
+   gain:"You gain detailed acting material and a production where small choices and relationships can matter enormously.",
+   lose:"You give up large-scale spectacle, fast pacing, and a conventional plot.",
+   vocal:"Advanced",acting:"Advanced",dance:"Low",energy:"Medium",emotion:"High",humor:"Low",
+   themes:"Family • Memory • Identity • Isolation",
+   fit:"Actors who love character studies and psychologically detailed theatre.",
+   notfit:"People looking for big dance numbers, fantasy adventure, or simple comedy.",
+   similar:["Fun Home","Sunday in the Park with George","Follies"]} ,  {name:"The Light in the Piazza",creator:"Adam Guettel & Craig Lucas",tags:["Emotional","Vocally Challenging"],score:91 ,
+   summary:"A mother and daughter travel through Italy and encounter a young man whose connection with the daughter changes the family’s understanding of love, independence, and possibility. The musical uses a highly lyrical score and close character work to explore how people see one another.",
+   good:["Beautiful sophisticated score","Strong vocal roles","Rich family relationship","Romantic storytelling","Intimate atmosphere"],
+   bad:["Demanding vocals","Slower pace","Less comedy","Not spectacle-driven"],
+   gain:"You gain lyrical music, detailed characters, and emotionally subtle storytelling.",
+   lose:"You give up constant energy, broad comedy, and large-scale spectacle.",
+   vocal:"Advanced",acting:"Advanced",dance:"Low",energy:"Medium",emotion:"High",humor:"Low",
+   themes:"Love • Family • Travel • Connection",
+   fit:"People who enjoy sophisticated music, romance, family stories, and quiet character work.",
+   notfit:"People wanting high-energy choreography or a broad comedy.",
+   similar:["The Secret Garden","Sunday in the Park with George","The Bridges of Madison County"]} ,  {name:"The Bridges of Madison County",creator:"Jason Robert Brown & Marsha Norman",tags:["Emotional","Vocally Challenging"],score:90 ,
+   summary:"A brief encounter between two adults becomes a story about love, choices, family responsibilities, and the lives people imagine for themselves. The musical spends much of its time examining the emotional consequences of decisions rather than chasing spectacle.",
+   good:["Exceptional lead roles","Beautiful score","Strong emotional arc","Intimate storytelling","Rich relationship material"],
+   bad:["Very relationship-focused","Demanding vocals","Quiet pacing","Less ensemble spectacle"],
+   gain:"You gain nuanced romance, strong acting material, and a score built for emotional storytelling.",
+   lose:"You give up broad comedy, fantasy, and a large ensemble adventure.",
+   vocal:"Advanced",acting:"Advanced",dance:"Low",energy:"Medium",emotion:"High",humor:"Low",
+   themes:"Love • Choice • Family • Regret",
+   fit:"People who like intimate romance and emotionally detailed character stories.",
+   notfit:"People wanting family comedy, high-energy dance, or spectacle-first theatre.",
+   similar:["The Light in the Piazza","Once","A Little Night Music"]} ,  {name:"Titanic",creator:"Maury Yeston & Peter Stone",tags:["Emotional","Vocally Challenging"],score:89 ,
+   summary:"A large ensemble musical follows passengers and crew aboard the Titanic as many individual hopes, relationships, and class differences converge on one historic journey. The show uses the ship itself as a cross-section of society, giving many characters their own perspective.",
+   good:["Huge ensemble scope","Many substantial roles","Powerful score","Historical setting","Strong visual potential"],
+   bad:["Serious subject matter","Large cast helps","Demanding vocals","Historical context is important"],
+   gain:"You gain many roles, large ensemble storytelling, and a broad dramatic canvas for a big cast.",
+   lose:"You give up a light tone, small-scale intimacy, and an easy emotional story.",
+   vocal:"Advanced",acting:"Advanced",dance:"Medium",energy:"High",emotion:"High",humor:"Low",
+   themes:"History • Class • Dreams • Courage",
+   fit:"Large groups who enjoy historical epics and ensemble musicals.",
+   notfit:"People looking for a short comedy or a very small cast.",
+   similar:["Ragtime","Les Misérables","Come From Away"]} ,  {name:"Memphis",creator:"David Bryan & Joe DiPietro",tags:["High Energy","Dance Heavy"],score:88 ,
+   summary:"A young music fan discovers a performer whose talent he believes deserves a larger audience, and their partnership unfolds as the city and music scene around them change. The story connects music, ambition, friendship, and social pressure with an energetic rock-and-soul style.",
+   good:["Energetic score","Dance opportunities","Strong lead roles","Historical setting","Ensemble energy"],
+   bad:["Serious social conflict","Demanding performance stamina","Biographical/historical context","Some emotional scenes are heavy"],
+   gain:"You gain rock-and-soul energy, choreography, and a strong central relationship.",
+   lose:"You give up a quiet chamber style and low physical demands.",
+   vocal:"Medium",acting:"Advanced",dance:"High",energy:"Very High",emotion:"High",humor:"Medium",
+   themes:"Music • Change • Ambition • Acceptance",
+   fit:"Performers who enjoy energetic music, dance, and historical stories with strong relationships.",
+   notfit:"People wanting a very quiet or purely comic musical.",
+   similar:["Hairspray","Jersey Boys","Dreamgirls"]} ,  {name:"Bandstand",creator:"Richard Oberacker & Robert Taylor",tags:["High Energy","Dance Heavy"],score:84 ,
+   summary:"A group of returning veterans forms a band and tries to rebuild lives through music while entering a national competition. The rehearsals and performances become a framework for friendship, identity, grief, and the question of how to start again after a major life change.",
+   good:["Strong ensemble","Live-music feel","Dance opportunities","Character-driven story","Historical atmosphere"],
+   bad:["Serious themes","Requires strong ensemble chemistry","Some demanding musical sections","Historical setting"],
+   gain:"You gain ensemble storytelling, musicianship, movement, and a cast where many characters matter.",
+   lose:"You give up fantasy spectacle and a consistently carefree tone.",
+   vocal:"Medium",acting:"Advanced",dance:"High",energy:"High",emotion:"High",humor:"Medium",
+   themes:"Music • Friendship • Recovery • Dreams",
+   fit:"People who like historical ensemble stories, live music, and emotionally grounded theatre.",
+   notfit:"People wanting fantasy comedy or a low-emotion production.",
+   similar:["Newsies","Memphis","A Chorus Line"]} ,  {name:"Mrs. Doubtfire",creator:"Karey Kirkpatrick, Wayne Kirkpatrick & John O’Farrell",tags:["Funny","High Energy"],score:86 ,
+   summary:"After a family changes shape, a parent creates an unexpected disguise to stay connected with his children while trying to repair relationships at home. The comedy comes from the increasingly complicated plan, but the emotional center is family, responsibility, and learning to communicate.",
+   good:["Strong comic lead","Family-friendly themes","Fast physical comedy","Good ensemble roles","Mix of humor and heart"],
+   bad:["Costume changes can be demanding","Broad comedy","Fast pacing","Some emotional scenes need balance"],
+   gain:"You gain comedy, family appeal, and a central role with lots of physical and character-based choices.",
+   lose:"You give up dark drama, intricate world-building, and a spectacle-heavy production.",
+   vocal:"Medium",acting:"Medium",dance:"Medium",energy:"High",emotion:"Medium",humor:"Very High",
+   themes:"Family • Change • Love • Responsibility",
+   fit:"Audiences who love family comedy and performers who enjoy physical character work.",
+   notfit:"People wanting a serious historical epic or a subtle psychological drama.",
+   similar:["The Prom","Sister Act","The Addams Family"]} ,  {name:"Back to the Future",creator:"Alan Silvestri & Glen Ballard / Bob Gale",tags:["High Energy","Dance Heavy"],score:89 ,
+   summary:"A teenager accidentally travels into the past and must navigate the consequences while trying to protect the future he knows. The musical combines adventure, family relationships, comedy, and science-fiction spectacle with a strong crowd-pleasing pace.",
+   good:["Big adventure","Strong visual potential","Comedy","Family themes","High-energy ensemble"],
+   bad:["Complex technical staging","Effects can be expensive","Fast pace","Some choreography and transitions require precision"],
+   gain:"You gain spectacle, comedy, adventure, and a story with broad audience appeal.",
+   lose:"You give up intimate character-first storytelling and a simple production setup.",
+   vocal:"Medium",acting:"Medium",dance:"High",energy:"High",emotion:"Medium",humor:"High",
+   themes:"Family • Adventure • Time • Identity",
+   fit:"People who love big adventures, time travel, comedy, and crowd-pleasing theatre.",
+   notfit:"People looking for a quiet chamber musical or minimal technical requirements.",
+   similar:["The Greatest Showman","Beetlejuice","Aladdin"]} ,  {name:"The Notebook",creator:"Ingrid Michaelson / Bekah Brunstetter",tags:["Emotional"],score:85 ,
+   summary:"A love story unfolds across different stages of life as the characters look back on how one relationship changed them. By moving between time periods, the musical focuses on memory, commitment, choice, and what remains important over time.",
+   good:["Strong central romance","Multiple lead opportunities","Emotional score","Intimate storytelling","Clear emotional through-line"],
+   bad:["Romance drives the story","Emotionally heavy","Less spectacle","Several lead vocal demands"],
+   gain:"You gain a focused emotional story and multiple versions of the characters to explore.",
+   lose:"You give up comedy-first storytelling, fantasy, and large ensemble spectacle.",
+   vocal:"Advanced",acting:"Advanced",dance:"Low",energy:"Medium",emotion:"High",humor:"Low",
+   themes:"Love • Memory • Time • Choice",
+   fit:"People who enjoy emotional romance and character-centered musicals.",
+   notfit:"People looking for action, comedy, or a large fantasy world.",
+   similar:["The Bridges of Madison County","Once","Hadestown"]} ,  {name:"Some Like It Hot",creator:"Marc Shaiman & Scott Wittman / Amber Ruffin et al.",tags:["Funny","High Energy","Dance Heavy"],score:93 ,
+   summary:"Two musicians on the run disguise themselves as members of a touring band, leading to a fast-paced comedy about identity, friendship, performance, and the freedom to become someone new. The show combines classic musical-comedy energy with modern theatrical rhythm.",
+   good:["Excellent comedy","Strong dance opportunities","Energetic score","Multiple featured roles","Big ensemble fun"],
+   bad:["High performance stamina","Broad comedy","Fast costume and scene changes","Historical setting"],
+   gain:"You gain classic-style musical comedy with modern speed, dance, and strong ensemble energy.",
+   lose:"You give up a quiet, realistic tone and a serious dramatic structure.",
+   vocal:"Medium",acting:"Advanced",dance:"High",energy:"Very High",emotion:"High",humor:"Very High",
+   themes:"Friendship • Identity • Adventure • Comedy",
+   fit:"People who love fast comedy, dance, disguise stories, and old-school musical theatre style.",
+   notfit:"People wanting slow drama or a deeply introspective musical.",
+   similar:["The Producers","Tootsie","Kiss Me, Kate"]} ,  {name:"New York, New York",creator:"John Kander / David Thompson & Sharon Washington",tags:["High Energy","Dance Heavy"],score:83 ,
+   summary:"After World War II, two performers meet in New York and try to build creative lives while balancing ambition, music, love, and the demands of the city. The show leans into the romance of performance and the idea that success may require difficult choices.",
+   good:["Big-city atmosphere","Strong lead roles","Dance opportunities","Show-business setting","Classic-inspired score"],
+   bad:["Traditional structure","Relationship-centered story","Less spectacle than some modern shows","Requires period styling"],
+   gain:"You gain an energetic show-business world and room for dancers, singers, and character performers.",
+   lose:"You give up fantasy, experimental structure, and a small intimate setting.",
+   vocal:"Medium",acting:"Medium",dance:"High",energy:"High",emotion:"Medium",humor:"Medium",
+   themes:"Ambition • Music • City life • Relationships",
+   fit:"People who love classic showbiz stories and New York theatre energy.",
+   notfit:"People wanting fantasy, very modern pop, or a quiet chamber piece.",
+   similar:["42nd Street","A Chorus Line","Bandstand"]} ,  {name:"Gutenberg! The Musical!",creator:"Scott Brown & Anthony King",tags:["Funny"],score:90 ,
+   summary:"Two friends pitch their dream musical to investors by performing the entire show themselves, switching between characters and trying to make their creation sound irresistible. The joke becomes a celebration of friendship, ambition, and the wild confidence required to make a theatre dream real.",
+   good:["Two-person format","Excellent comedy","Flexible staging","Strong acting challenge","Theatre-about-theatre"],
+   bad:["Tiny cast only","Relies heavily on comic timing","Limited large ensemble opportunities","Very self-aware style"],
+   gain:"You gain an unusually focused acting and comedy challenge that can work with very little physical production.",
+   lose:"You give up dance-heavy ensemble spectacle, many characters, and a large visual world.",
+   vocal:"Medium",acting:"Advanced",dance:"Low",energy:"High",emotion:"High",humor:"Very High",
+   themes:"Friendship • Theater • Ambition • Comedy",
+   fit:"Two performers who love comedy, character switching, and musical-theatre jokes.",
+   notfit:"Groups wanting a large cast or a spectacle-driven production.",
+   similar:["The Drowsy Chaperone","The Producers","Something Rotten!"]} ,  {name:"Once Upon a One More Time",creator:"Jon Hartmere / Britney Spears",tags:["High Energy","Dance Heavy"],score:81 ,
+   summary:"Fairy-tale characters discover ideas that challenge the stories they have always been told and begin reconsidering what their own futures could look like. The production uses pop music, comedy, and fantasy to turn familiar stories into a modern ensemble adventure.",
+   good:["Pop music","Dance opportunities","Colorful ensemble","Comedy","Fairy-tale setting"],
+   bad:["Jukebox-style score","High dance energy","Story is intentionally playful","Less traditional musical-theatre sound"],
+   gain:"You gain recognizable pop, choreography, comedy, and a colorful ensemble world.",
+   lose:"You give up a classic score, historical realism, and a serious fairy-tale adaptation.",
+   vocal:"Medium",acting:"Medium",dance:"High",energy:"Very High",emotion:"High",humor:"High",
+   themes:"Independence • Stories • Friendship • Change",
+   fit:"People who enjoy pop, dance, fantasy, and modern reimaginings.",
+   notfit:"People wanting traditional golden-age Broadway or deeply realistic drama.",
+   similar:["& Juliet","Six","Moulin Rouge!"]} ,  {name:"The Cher Show",creator:"Rick Elice / Various",tags:["High Energy","Dance Heavy"],score:85 ,
+   summary:"Cher’s career is presented through different stages of her life and performance identity, using her music to connect moments of ambition, change, fame, and reinvention. The format gives performers room to explore how one public figure can evolve dramatically over time.",
+   good:["Strong performance roles","High-energy music","Interesting lead concept","Dance opportunities","Visual style"],
+   bad:["Biography-driven","Demanding central performance","Jukebox structure","Less original musical-theatre storytelling"],
+   gain:"You gain performance-centered roles, recognizable music, and opportunities to play different eras of a major artist’s career.",
+   lose:"You give up a fully original score and a traditional fictional plot.",
+   vocal:"Advanced",acting:"Advanced",dance:"High",energy:"Very High",emotion:"High",humor:"Medium",
+   themes:"Identity • Music • Fame • Reinvention",
+   fit:"Performers who enjoy pop icons, character transformation, and concert-style energy.",
+   notfit:"People wanting fantasy or an original story with no real-life subject.",
+   similar:["Tina: The Tina Turner Musical","MJ","Beautiful: The Carole King Musical"]} ,  {name:"Tootsie",creator:"David Yazbek & Robert Horn",tags:["Funny","High Energy"],score:88 ,
+   summary:"A talented actor creates a disguise because his difficult reputation has made finding work nearly impossible, and the unexpected success of the new identity creates increasingly complicated problems. The comedy comes from performance, mistaken identity, and the challenge of maintaining a secret while relationships change.",
+   good:["Excellent comic lead","Fast-paced comedy","Strong ensemble","Theatre setting","Lots of character moments"],
+   bad:["Broad premise","Comedy timing is essential","Some demanding lead material","Mature workplace themes"],
+   gain:"You gain a major comic role, rapid pacing, and a show that can make staging and acting part of the joke.",
+   lose:"You give up heavy dramatic intensity and a quiet character-study format.",
+   vocal:"Medium",acting:"Advanced",dance:"Medium",energy:"High",emotion:"High",humor:"Very High",
+   themes:"Identity • Work • Theater • Comedy",
+   fit:"Performers who love comedy, theatre stories, and physical character work.",
+   notfit:"People wanting historical drama, fantasy, or a very subtle tone.",
+   similar:["Mrs. Doubtfire","The Producers","Some Like It Hot"]} ,  {name:"Ain’t Too Proud",creator:"Dominique Morisseau / The Temptations",tags:["High Energy","Dance Heavy"],score:89 ,
+   summary:"A jukebox musical traces the rise of The Temptations, showing how friendship, ambition, fame, and group dynamics evolve as their careers change. The production combines biography with choreography and vocal performance to capture the energy of a touring group.",
+   good:["Strong vocal harmonies","Huge dance opportunities","Ensemble-focused","Recognizable music","Clear performance energy"],
+   bad:["Dance-heavy","Demanding vocals","Biographical structure","Fast performance pace"],
+   gain:"You gain singing, harmony, choreography, and a true ensemble-centered performance style.",
+   lose:"You give up a quiet chamber production and a plot built entirely from original storytelling.",
+   vocal:"Advanced",acting:"Advanced",dance:"Very High",energy:"Very High",emotion:"High",humor:"Medium",
+   themes:"Music • Friendship • Fame • Change",
+   fit:"Strong singers and dancers who enjoy group performance and music history.",
+   notfit:"People looking for a low-movement, dialogue-driven show.",
+   similar:["Jersey Boys","Dreamgirls","MJ"]} ,  {name:"A Bronx Tale",creator:"Alan Menken & Glenn Slater / Chazz Palminteri",tags:["Emotional","High Energy"],score:86 ,
+   summary:"A teenager growing up in the Bronx finds himself pulled between the influence of his family and the influence of a local neighborhood figure. The story focuses on loyalty, choices, identity, and how the people around you shape the person you become.",
+   good:["Strong character roles","Clear coming-of-age story","Compact storytelling","Music with period flavor","Good ensemble support"],
+   bad:["Serious themes","Historical setting","Less fantasy spectacle","Requires nuanced acting"],
+   gain:"You gain a character-driven story that can create strong relationships without requiring a huge production.",
+   lose:"You give up fantasy, giant choreography, and a purely comedic tone.",
+   vocal:"Medium",acting:"Advanced",dance:"Medium",energy:"High",emotion:"High",humor:"Medium",
+   themes:"Family • Loyalty • Growing up • Choices",
+   fit:"People who like coming-of-age stories, character acting, and grounded ensemble drama.",
+   notfit:"People looking for family fantasy, nonstop comedy, or spectacle-first theatre.",
+   similar:["West Side Story","Jersey Boys","Come From Away"]} ,  {name:"Kiss Me, Kate",creator:"Cole Porter / Bella & Samuel Spewack",tags:["Funny","Dance Heavy"],score:92 ,
+   summary:"A company staging Shakespeare’s Taming of the Shrew discovers that the actors’ real-life relationships are just as chaotic as the play they are performing. Backstage arguments, romance, ego, and theatrical tradition all collide in a classic musical comedy.",
+   good:["Strong comedy","Dance opportunities","Backstage concept","Rich score","Multiple featured roles"],
+   bad:["Older style and language","Comedy timing matters","Some roles are vocally demanding","Traditional structure"],
+   gain:"You gain theatre-about-theatre humor, classic musical comedy, and lots of opportunities for personality.",
+   lose:"You give up modern realism, contemporary music, and a simple backstage story.",
+   vocal:"Advanced",acting:"Advanced",dance:"High",energy:"High",emotion:"High",humor:"High",
+   themes:"Theater • Romance • Egos • Comedy",
+   fit:"People who enjoy classic Broadway, Shakespeare references, and backstage comedy.",
+   notfit:"People wanting modern pop theatre or a serious realistic drama.",
+   similar:["42nd Street","The Producers","Something Rotten!"]} ,  {name:"42nd Street",creator:"Harry Warren & Al Dubin / Michael Stewart & Mark Bramble",tags:["High Energy","Dance Heavy"],score:91 ,
+   summary:"A young performer gets a sudden chance to step into a major role when a Broadway production faces a crisis. Around her, the entire company works toward opening night, creating a celebration of dance, ambition, teamwork, and old-school show-business energy.",
+   good:["Huge dance opportunities","Large ensemble","Show-business setting","Strong choreography","Classic musical style"],
+   bad:["Very dance-heavy","Large cast helps","Requires strong physical stamina","Traditional storytelling"],
+   gain:"You gain one of the clearest dance-first ensemble experiences in musical theatre, with lots of roles and movement.",
+   lose:"You give up intimate storytelling, low choreography, and a modern pop sound.",
+   vocal:"Medium",acting:"Medium",dance:"Very High",energy:"Very High",emotion:"High",humor:"Medium",
+   themes:"Theater • Ambition • Determination • Teamwork",
+   fit:"Dancers and performers who love classic Broadway and ensemble spectacle.",
+   notfit:"People wanting a quiet, dialogue-driven musical or minimal movement.",
+   similar:["A Chorus Line","The Music Man","New York, New York"]} ,  {name:"An American in Paris",creator:"George Gershwin / Craig Lucas / Christopher Wheeldon",tags:["Emotional","Dance Heavy"],score:91 ,
+   summary:"A young American artist and a mysterious woman meet in postwar Paris, where art, romance, and the city itself become part of their story. The production is especially interested in movement and visual storytelling, using dance to communicate feelings words cannot always capture.",
+   good:["Exceptional dance","Beautiful score","Strong visual storytelling","Romantic atmosphere","Creative staging"],
+   bad:["Very dance-heavy","Demanding choreography","Romantic storyline","Some lead vocals are challenging"],
+   gain:"You gain sophisticated dance storytelling, beautiful music, and a production that can be visually stunning.",
+   lose:"You give up low physical demands and a comedy-first atmosphere.",
+   vocal:"Advanced",acting:"Advanced",dance:"Very High",energy:"High",emotion:"High",humor:"Medium",
+   themes:"Art • Love • Dreams • Paris",
+   fit:"Strong dancers and performers who love romance, art, and visually expressive theatre.",
+   notfit:"People looking for minimal choreography or primarily comic storytelling.",
+   similar:["Anastasia","The Light in the Piazza","West Side Story"]} ,  {name:"Big Fish",creator:"Andrew Lippa & John August",tags:["Emotional"],score:88 ,
+   summary:"A son trying to understand his father revisits the larger-than-life stories his dad always told and wonders how much of them is true. The musical uses fantasy and memory to explore family relationships, storytelling, legacy, and the different ways people remember the same life.",
+   good:["Strong family story","Fantasy elements","Emotional character work","Mix of humor and heart","Good ensemble variety"],
+   bad:["Nonlinear storytelling","Fantasy can be elaborate","Emotional ending","Less choreography-focused"],
+   gain:"You gain imagination, family-centered storytelling, and a role for performers who enjoy balancing reality with fantasy.",
+   lose:"You give up a simple realistic plot and a dance-heavy production.",
+   vocal:"Medium",acting:"Advanced",dance:"Medium",energy:"High",emotion:"High",humor:"Medium",
+   themes:"Family • Memory • Stories • Legacy",
+   fit:"People who love heartfelt family stories and imaginative theatre.",
+   notfit:"People looking for pure comedy, realism, or huge choreography.",
+   similar:["The Secret Garden","The Greatest Showman","Big River"]} ,  {name:"Big River",creator:"Roger Miller & William Hauptman",tags:["Emotional","High Energy"],score:83 ,
+   summary:"A musical adaptation of Mark Twain’s Huckleberry Finn follows Huck and Jim as they travel along the Mississippi River and encounter people, choices, and dangers that shape their understanding of freedom and friendship. The journey structure gives the show an adventurous feel while keeping the focus on character and community.",
+   good:["Strong ensemble","Adventure story","Distinctive musical style","Character roles","Flexible staging"],
+   bad:["Historical setting","Requires context for period themes","Less contemporary sound","Some productions benefit from larger ensemble support"],
+   gain:"You gain an American adventure story, strong character relationships, and a score with a distinctive regional flavor.",
+   lose:"You give up contemporary pop, fantasy spectacle, and a highly modern setting.",
+   vocal:"Medium",acting:"Medium",dance:"Medium",energy:"High",emotion:"Medium",humor:"Medium",
+   themes:"Friendship • Freedom • Adventure • Growing up",
+   fit:"People who enjoy classic American storytelling, adventure, and character-focused musicals.",
+   notfit:"People wanting modern pop theatre or giant visual spectacle.",
+   similar:["Ragtime","Oklahoma!","The Music Man"]} ,
+];
+
+function scrollToId(id){document.getElementById(id).scrollIntoView({behavior:"smooth"})}
+function renderCards(){
+ const q=(document.getElementById("search").value||"").trim().toLowerCase();
+ const f=document.getElementById("filter").value||"";
+ const filtered=shows.filter(s=>
+   (!q || s.name.toLowerCase().includes(q) || s.creator.toLowerCase().includes(q) || s.themes.toLowerCase().includes(q)) &&
+   (!f || s.tags.includes(f))
+ );
+ const out=filtered.map((s,i)=>`
+ <article class="card" data-musical-name="${String(s.name).replace(/&/g,"&amp;").replace(/\"/g,"&quot;")}">
+   <div class="cover">${s.name}</div>
+   <h3>${s.name}</h3><div class="meta">${s.creator}</div>
+   <div class="tags">${s.tags.map(t=>`<span class="tag">${t}</span>`).join("")}</div>
+   <div class="mini-stats">
+     <span>🎤 ${s.vocal}</span><span>💃 ${s.dance}</span><span>⚡ ${s.energy}</span>
+   </div>
+   <div class="rating">StageMatch Fit: ${s.score}%</div>
+ </article>`).join("");
+ const cards=document.getElementById("cards");
+ cards.innerHTML=out||"<p>No shows match that search yet.</p>";
+ cards.querySelectorAll(".card").forEach(card=>{
+   card.addEventListener("click",()=>openByName(card.dataset.musicalName));
+ });
+ const cc=document.getElementById("catalogCount");
+ if(cc) cc.textContent=`${filtered.length} of ${shows.length} musicals`;
+}
+function openShow(i){
+ const s=shows[i];
+ document.getElementById("modalContent").innerHTML=`
+ <span class="pill">${s.vocal} vocal difficulty</span>
+ <h2>${s.name}</h2><p class="meta">${s.creator}</p>
+ <p class="lead">${s.summary}</p>
+ <div class="score-grid">
+   <div><b>🎤 Vocal</b><span>${s.vocal}</span></div>
+   <div><b>🎭 Acting</b><span>${s.acting}</span></div>
+   <div><b>💃 Dance</b><span>${s.dance}</span></div>
+   <div><b>⚡ Energy</b><span>${s.energy}</span></div>
+   <div><b>💗 Emotion</b><span>${s.emotion}</span></div>
+   <div><b>😂 Humor</b><span>${s.humor}</span></div>
+ </div>
+ <div class="cols">
+   <div class="good"><b>✅ What it's good at</b><ul>${s.good.map(x=>`<li>${x}</li>`).join("")}</ul></div>
+   <div class="bad"><b>⚠️ What might not work for you</b><ul>${s.bad.map(x=>`<li>${x}</li>`).join("")}</ul></div>
+ </div>
+ <div class="trade"><b>⚖️ The Trade-Off</b><p style="color:#5d5367;margin:6px 0 14px">Every musical has strengths and compromises. Here is what this show gives you — and what you may be choosing not to get.</p><p><strong>✨ YOU GAIN:</strong> ${s.gain}</p><p><strong>↔️ YOU GIVE UP:</strong> ${s.lose}</p></div>
+ <div class="detail-box"><b>🏷️ Themes</b><p>${s.themes}</p></div>
+ <div class="detail-box"><b>👤 Best for</b><p>${s.fit}</p><b>🚫 Probably not for</b><p>${s.notfit}</p></div>
+ <div class="detail-box" id="showActions"><b>💾 Your StageMatch</b><p>Save this musical to your profile.</p><button class="cta" onclick="toggleSaved('favorites','${s.name.replace(/'/g,"\\'")}')">⭐ <span id="favBtnText">Favorite</span></button> <button class="cta" onclick="toggleSaved('want','${s.name.replace(/'/g,"\\'")}')">🎟️ <span id="wantBtnText">Want to See</span></button> <button class="cta" onclick="toggleSaved('seen','${s.name.replace(/'/g,"\\'")}')">✅ <span id="seenBtnText">Seen</span></button><textarea id="note_${s.name.replace(/[^a-zA-Z0-9]/g,'_')}" placeholder="Private note about this musical..." style="width:100%;min-height:80px;margin-top:12px;padding:10px;box-sizing:border-box"></textarea><button class="link-btn" onclick="saveNote('${s.name.replace(/'/g,"\\'")}')">Save Note</button></div>
+ <div class="detail-box"><b>🔁 If you like this...</b><p>${s.similar.map((x,j)=>`<button class="link-btn" onclick="openByName('${x}')">${x}</button>`).join(" ")}</p></div>
+ `;
+ document.getElementById("modal").style.display="flex";
+}
+function openByName(name){
+ const i=shows.findIndex(s=>s.name===name);
+ if(i>=0) openShow(i);
+}
+function closeModal(){document.getElementById("modal").style.display="none"}
+document.querySelectorAll(".options").forEach(group=>group.addEventListener("click",e=>{
+ if(!e.target.classList.contains("option"))return;
+ group.querySelectorAll(".option").forEach(b=>b.classList.remove("selected")); e.target.classList.add("selected");
+}));
+function quizResult(){
+ const answers={};
+ document.querySelectorAll(".options").forEach(group=>{
+   const selected=group.querySelector(".selected");
+   if(selected) answers[group.dataset.q]=selected.dataset.v;
+ });
+ if(Object.keys(answers).length<15){alert("Please answer all 15 questions so we can make your match more accurate!");return}
+
+ const prefs={
+   Wicked:{emotion:"high",energy:"high",vocal:"high",dance:"medium",world:"fantasy",humor:"medium",romance:"medium",spectacle:"high",vibe:"epic"},
+   Hamilton:{emotion:"high",energy:"high",vocal:"high",dance:"medium",world:"history",humor:"medium",romance:"low",spectacle:"medium",vibe:"epic"},
+   Matilda:{emotion:"high",energy:"medium",vocal:"medium",dance:"medium",world:"fantasy",humor:"high",romance:"low",spectacle:"medium",vibe:"warm"},
+   "The Greatest Showman":{emotion:"high",energy:"high",vocal:"medium",dance:"medium",world:"history",humor:"low",romance:"medium",spectacle:"high",vibe:"bright"},
+   Six:{emotion:"medium",energy:"high",vocal:"high",dance:"high",world:"history",humor:"high",romance:"low",spectacle:"medium",vibe:"modern"},
+   "The Lion King":{emotion:"high",energy:"high",vocal:"medium",dance:"high",world:"fantasy",humor:"medium",romance:"low",spectacle:"high",vibe:"epic"},
+   "Hairspray":{emotion:"medium",energy:"high",vocal:"medium",dance:"high",world:"history",humor:"high",romance:"medium",spectacle:"medium",vibe:"bright"},
+   Newsies:{emotion:"medium",energy:"high",vocal:"medium",dance:"high",world:"history",humor:"medium",romance:"medium",spectacle:"medium",vibe:"epic"},
+   "Mean Girls":{emotion:"medium",energy:"high",vocal:"medium",dance:"medium",world:"real",humor:"high",romance:"medium",spectacle:"medium",vibe:"modern"},
+   "Legally Blonde":{emotion:"medium",energy:"high",vocal:"medium",dance:"high",world:"real",humor:"high",romance:"high",spectacle:"medium",vibe:"bright"},
+   Beetlejuice:{emotion:"high",energy:"high",vocal:"high",dance:"medium",world:"supernatural",humor:"high",romance:"low",spectacle:"high",vibe:"dark"},
+   "The Addams Family":{emotion:"medium",energy:"high",vocal:"medium",dance:"medium",world:"supernatural",humor:"high",romance:"medium",spectacle:"medium",vibe:"dark"},
+   "Dear Evan Hansen":{emotion:"high",energy:"medium",vocal:"high",dance:"low",world:"real",humor:"low",romance:"medium",spectacle:"low",vibe:"warm"},
+   "Mamma Mia!":{emotion:"medium",energy:"high",vocal:"medium",dance:"medium",world:"real",humor:"high",romance:"high",spectacle:"medium",vibe:"bright"},
+   "The Sound of Music":{emotion:"high",energy:"medium",vocal:"medium",dance:"low",world:"history",humor:"medium",romance:"high",spectacle:"medium",vibe:"warm"},
+   "Little Shop of Horrors":{emotion:"medium",energy:"high",vocal:"high",dance:"low",world:"supernatural",humor:"high",romance:"medium",spectacle:"medium",vibe:"dark"},
+   Aladdin:{emotion:"medium",energy:"high",vocal:"medium",dance:"high",world:"fantasy",humor:"high",romance:"high",spectacle:"high",vibe:"bright"},
+   "Beauty and the Beast":{emotion:"high",energy:"high",vocal:"medium",dance:"medium",world:"fantasy",humor:"medium",romance:"high",spectacle:"high",vibe:"warm"},
+   Waitress:{emotion:"high",energy:"medium",vocal:"high",dance:"low",world:"real",humor:"medium",romance:"high",spectacle:"low",vibe:"warm"},
+   "Come From Away":{emotion:"high",energy:"high",vocal:"medium",dance:"medium",world:"history",humor:"high",romance:"low",spectacle:"low",vibe:"warm"},
+   Hadestown:{emotion:"high",energy:"medium",vocal:"high",dance:"medium",world:"supernatural",humor:"low",romance:"high",spectacle:"medium",vibe:"dark"},
+   "Les Misérables":{emotion:"high",energy:"high",vocal:"high",dance:"low",world:"history",humor:"low",romance:"medium",spectacle:"high",vibe:"epic"},
+   "The Prom":{emotion:"high",energy:"high",vocal:"medium",dance:"medium",world:"real",humor:"high",romance:"high",spectacle:"medium",vibe:"bright"},
+   Annie:{emotion:"medium",energy:"high",vocal:"medium",dance:"medium",world:"history",humor:"high",romance:"low",spectacle:"medium",vibe:"bright"},
+   Chicago:{emotion:"medium",energy:"high",vocal:"high",dance:"high",world:"history",humor:"high",romance:"medium",spectacle:"medium",vibe:"dark"},
+   Frozen:{emotion:"high",energy:"high",vocal:"high",dance:"medium",world:"fantasy",humor:"high",romance:"medium",spectacle:"high",vibe:"bright"},
+   "Into the Woods":{emotion:"high",energy:"medium",vocal:"high",dance:"low",world:"fantasy",humor:"high",romance:"medium",spectacle:"medium",vibe:"dark"},
+   "Moulin Rouge!":{emotion:"high",energy:"high",vocal:"high",dance:"high",world:"real",humor:"medium",romance:"high",spectacle:"high",vibe:"epic"},
+   "The Phantom of the Opera":{emotion:"high",energy:"high",vocal:"high",dance:"medium",world:"real",humor:"low",romance:"high",spectacle:"high",vibe:"dark"},
+   Anastasia:{emotion:"high",energy:"high",vocal:"high",dance:"medium",world:"history",humor:"medium",romance:"high",spectacle:"high",vibe:"epic"},
+   "The Outsiders":{emotion:"high",energy:"high",vocal:"medium",dance:"high",world:"real",humor:"low",romance:"medium",spectacle:"medium",vibe:"modern"},
+   "West Side Story":{emotion:"high",energy:"high",vocal:"high",dance:"high",world:"history",humor:"low",romance:"high",spectacle:"high",vibe:"epic"},
+   "Fiddler on the Roof":{emotion:"high",energy:"medium",vocal:"medium",dance:"medium",world:"history",humor:"high",romance:"high",spectacle:"medium",vibe:"warm"},
+   "Mary Poppins":{emotion:"medium",energy:"high",vocal:"medium",dance:"high",world:"fantasy",humor:"high",romance:"medium",spectacle:"high",vibe:"bright"},
+   "School of Rock":{emotion:"medium",energy:"high",vocal:"medium",dance:"low",world:"real",humor:"high",romance:"low",spectacle:"medium",vibe:"modern"},
+   "Something Rotten!":{emotion:"low",energy:"high",vocal:"medium",dance:"medium",world:"history",humor:"high",romance:"medium",spectacle:"medium",vibe:"bright"},
+   "The Music Man":{emotion:"medium",energy:"high",vocal:"medium",dance:"high",world:"history",humor:"high",romance:"high",spectacle:"medium",vibe:"bright"},
+   "A Chorus Line":{emotion:"high",energy:"high",vocal:"medium",dance:"high",world:"real",humor:"medium",romance:"medium",spectacle:"low",vibe:"modern"},
+   "Guys and Dolls":{emotion:"medium",energy:"high",vocal:"medium",dance:"high",world:"real",humor:"high",romance:"high",spectacle:"medium",vibe:"bright"},
+   Once:{emotion:"high",energy:"medium",vocal:"high",dance:"low",world:"real",humor:"medium",romance:"high",spectacle:"low",vibe:"warm"},
+   "Kimberly Akimbo":{emotion:"high",energy:"medium",vocal:"medium",dance:"low",world:"real",humor:"high",romance:"low",spectacle:"low",vibe:"warm"},
+   "Bring It On":{emotion:"medium",energy:"high",vocal:"medium",dance:"high",world:"real",humor:"high",romance:"medium",spectacle:"medium",vibe:"modern"},
+   "Gypsy":{emotion:"high",energy:"high",vocal:"high",dance:"medium",world:"real",humor:"medium",romance:"medium",spectacle:"medium",vibe:"epic"},
+   "Cabaret":{emotion:"high",energy:"high",vocal:"high",dance:"high",world:"history",humor:"medium",romance:"medium",spectacle:"medium",vibe:"dark"},
+   "Company":{emotion:"high",energy:"medium",vocal:"high",dance:"medium",world:"real",humor:"high",romance:"medium",spectacle:"medium",vibe:"epic"},
+   "Sweeney Todd":{emotion:"high",energy:"high",vocal:"high",dance:"medium",world:"real",humor:"low",romance:"medium",spectacle:"medium",vibe:"dark"},
+   "Oklahoma!":{emotion:"medium",energy:"medium",vocal:"medium",dance:"high",world:"real",humor:"medium",romance:"high",spectacle:"medium",vibe:"dark"},
+   "Carousel":{emotion:"high",energy:"medium",vocal:"high",dance:"high",world:"real",humor:"low",romance:"high",spectacle:"high",vibe:"epic"},
+   "South Pacific":{emotion:"high",energy:"medium",vocal:"medium",dance:"medium",world:"history",humor:"medium",romance:"high",spectacle:"medium",vibe:"dark"},
+   "My Fair Lady":{emotion:"high",energy:"medium",vocal:"high",dance:"medium",world:"real",humor:"high",romance:"medium",spectacle:"medium",vibe:"epic"},
+   "Hello, Dolly!":{emotion:"medium",energy:"high",vocal:"medium",dance:"high",world:"real",humor:"high",romance:"high",spectacle:"high",vibe:"epic"},
+   "Funny Girl":{emotion:"high",energy:"high",vocal:"high",dance:"medium",world:"real",humor:"medium",romance:"high",spectacle:"medium",vibe:"epic"},
+   "Follies":{emotion:"high",energy:"medium",vocal:"high",dance:"medium",world:"real",humor:"low",romance:"medium",spectacle:"medium",vibe:"warm"},
+   "Dreamgirls":{emotion:"high",energy:"high",vocal:"high",dance:"high",world:"real",humor:"medium",romance:"medium",spectacle:"high",vibe:"epic"},
+   "Pippin":{emotion:"high",energy:"high",vocal:"medium",dance:"high",world:"fantasy",humor:"medium",romance:"medium",spectacle:"high",vibe:"epic"},
+   "Godspell":{emotion:"high",energy:"high",vocal:"medium",dance:"medium",world:"real",humor:"high",romance:"medium",spectacle:"medium",vibe:"warm"},
+   "Jesus Christ Superstar":{emotion:"high",energy:"high",vocal:"high",dance:"medium",world:"real",humor:"low",romance:"medium",spectacle:"medium",vibe:"dark"},
+   "Evita":{emotion:"high",energy:"high",vocal:"high",dance:"medium",world:"history",humor:"low",romance:"medium",spectacle:"medium",vibe:"dark"},
+   "Hair":{emotion:"medium",energy:"high",vocal:"medium",dance:"high",world:"history",humor:"high",romance:"medium",spectacle:"medium",vibe:"dark"},
+   "Rent":{emotion:"high",energy:"high",vocal:"high",dance:"medium",world:"real",humor:"medium",romance:"high",spectacle:"medium",vibe:"epic"},
+   "Avenue Q":{emotion:"high",energy:"high",vocal:"medium",dance:"low",world:"real",humor:"high",romance:"medium",spectacle:"medium",vibe:"bright"},
+   "Urinetown":{emotion:"high",energy:"high",vocal:"medium",dance:"high",world:"history",humor:"high",romance:"medium",spectacle:"medium",vibe:"dark"},
+   "Spring Awakening":{emotion:"high",energy:"high",vocal:"high",dance:"medium",world:"real",humor:"low",romance:"medium",spectacle:"medium",vibe:"epic"},
+   "The 25th Annual Putnam County Spelling Bee":{emotion:"high",energy:"medium",vocal:"medium",dance:"low",world:"real",humor:"high",romance:"medium",spectacle:"medium",vibe:"epic"},
+   "In the Heights":{emotion:"high",energy:"high",vocal:"high",dance:"high",world:"real",humor:"high",romance:"medium",spectacle:"high",vibe:"epic"},
+   "9 to 5: The Musical":{emotion:"medium",energy:"high",vocal:"medium",dance:"medium",world:"real",humor:"high",romance:"medium",spectacle:"medium",vibe:"bright"},
+   "Kinky Boots":{emotion:"high",energy:"high",vocal:"medium",dance:"high",world:"real",humor:"high",romance:"medium",spectacle:"high",vibe:"epic"},
+   "Beautiful: The Carole King Musical":{emotion:"high",energy:"medium",vocal:"medium",dance:"medium",world:"real",humor:"medium",romance:"medium",spectacle:"medium",vibe:"epic"},
+   "Jersey Boys":{emotion:"high",energy:"high",vocal:"high",dance:"medium",world:"real",humor:"medium",romance:"medium",spectacle:"high",vibe:"epic"},
+   "Tina: The Tina Turner Musical":{emotion:"high",energy:"high",vocal:"high",dance:"high",world:"real",humor:"medium",romance:"medium",spectacle:"high",vibe:"epic"},
+   "MJ":{emotion:"high",energy:"high",vocal:"high",dance:"high",world:"real",humor:"medium",romance:"medium",spectacle:"medium",vibe:"warm"},
+   "& Juliet":{emotion:"high",energy:"high",vocal:"medium",dance:"high",world:"real",humor:"high",romance:"medium",spectacle:"high",vibe:"epic"},
+   "Jagged Little Pill":{emotion:"high",energy:"high",vocal:"high",dance:"medium",world:"real",humor:"medium",romance:"medium",spectacle:"medium",vibe:"warm"},
+   "The Book of Mormon":{emotion:"high",energy:"high",vocal:"high",dance:"medium",world:"real",humor:"high",romance:"medium",spectacle:"high",vibe:"epic"},
+   "Spamalot":{emotion:"high",energy:"high",vocal:"medium",dance:"high",world:"fantasy",humor:"high",romance:"medium",spectacle:"high",vibe:"epic"},
+   "Monty Python’s Spamalot":{emotion:"high",energy:"high",vocal:"medium",dance:"high",world:"fantasy",humor:"high",romance:"medium",spectacle:"high",vibe:"epic"},
+   "Young Frankenstein":{emotion:"high",energy:"high",vocal:"medium",dance:"high",world:"real",humor:"high",romance:"medium",spectacle:"medium",vibe:"bright"},
+   "The Producers":{emotion:"high",energy:"high",vocal:"medium",dance:"medium",world:"real",humor:"high",romance:"medium",spectacle:"high",vibe:"epic"},
+   "The Drowsy Chaperone":{emotion:"high",energy:"medium",vocal:"medium",dance:"medium",world:"real",humor:"high",romance:"high",spectacle:"medium",vibe:"epic"},
+   "The Full Monty":{emotion:"high",energy:"high",vocal:"medium",dance:"medium",world:"real",humor:"high",romance:"medium",spectacle:"medium",vibe:"bright"},
+   "Priscilla Queen of the Desert":{emotion:"high",energy:"high",vocal:"medium",dance:"high",world:"real",humor:"high",romance:"medium",spectacle:"medium",vibe:"warm"},
+   "Sister Act":{emotion:"high",energy:"high",vocal:"medium",dance:"high",world:"real",humor:"high",romance:"medium",spectacle:"medium",vibe:"bright"},
+   "Xanadu":{emotion:"high",energy:"high",vocal:"medium",dance:"high",world:"fantasy",humor:"high",romance:"high",spectacle:"medium",vibe:"bright"},
+   "The Wiz":{emotion:"high",energy:"high",vocal:"high",dance:"high",world:"real",humor:"high",romance:"medium",spectacle:"high",vibe:"epic"},
+   "Once Upon a Mattress":{emotion:"high",energy:"medium",vocal:"medium",dance:"high",world:"real",humor:"high",romance:"high",spectacle:"medium",vibe:"bright"},
+   "The Secret Garden":{emotion:"high",energy:"medium",vocal:"high",dance:"low",world:"real",humor:"medium",romance:"medium",spectacle:"medium",vibe:"epic"},
+   "Ragtime":{emotion:"high",energy:"high",vocal:"high",dance:"medium",world:"history",humor:"low",romance:"medium",spectacle:"medium",vibe:"epic"},
+   "Parade":{emotion:"high",energy:"high",vocal:"high",dance:"low",world:"history",humor:"low",romance:"medium",spectacle:"medium",vibe:"dark"},
+   "Assassins":{emotion:"high",energy:"high",vocal:"high",dance:"low",world:"history",humor:"low",romance:"medium",spectacle:"medium",vibe:"warm"},
+   "Sunday in the Park with George":{emotion:"high",energy:"medium",vocal:"high",dance:"low",world:"real",humor:"low",romance:"medium",spectacle:"medium",vibe:"epic"},
+   "Merrily We Roll Along":{emotion:"high",energy:"medium",vocal:"high",dance:"low",world:"real",humor:"medium",romance:"medium",spectacle:"medium",vibe:"epic"},
+   "Falsettos":{emotion:"high",energy:"medium",vocal:"high",dance:"low",world:"real",humor:"medium",romance:"medium",spectacle:"medium",vibe:"epic"},
+   "Fun Home":{emotion:"high",energy:"medium",vocal:"high",dance:"low",world:"real",humor:"medium",romance:"medium",spectacle:"medium",vibe:"epic"},
+   "Caroline, or Change":{emotion:"high",energy:"medium",vocal:"high",dance:"low",world:"history",humor:"low",romance:"medium",spectacle:"medium",vibe:"warm"},
+   "Next to Normal":{emotion:"high",energy:"high",vocal:"high",dance:"medium",world:"real",humor:"low",romance:"medium",spectacle:"medium",vibe:"epic"},
+   "A Little Night Music":{emotion:"high",energy:"medium",vocal:"high",dance:"medium",world:"real",humor:"high",romance:"high",spectacle:"medium",vibe:"epic"},
+   "Grey Gardens":{emotion:"high",energy:"medium",vocal:"high",dance:"low",world:"real",humor:"low",romance:"medium",spectacle:"medium",vibe:"dark"},
+   "The Light in the Piazza":{emotion:"high",energy:"medium",vocal:"high",dance:"low",world:"real",humor:"low",romance:"high",spectacle:"medium",vibe:"epic"},
+   "The Bridges of Madison County":{emotion:"high",energy:"medium",vocal:"high",dance:"low",world:"real",humor:"low",romance:"high",spectacle:"medium",vibe:"epic"},
+   "Titanic":{emotion:"high",energy:"high",vocal:"high",dance:"medium",world:"history",humor:"low",romance:"medium",spectacle:"medium",vibe:"warm"},
+   "Memphis":{emotion:"high",energy:"high",vocal:"medium",dance:"high",world:"real",humor:"medium",romance:"medium",spectacle:"medium",vibe:"warm"},
+   "Bandstand":{emotion:"high",energy:"high",vocal:"medium",dance:"high",world:"real",humor:"medium",romance:"medium",spectacle:"medium",vibe:"warm"},
+   "Mrs. Doubtfire":{emotion:"medium",energy:"high",vocal:"medium",dance:"medium",world:"real",humor:"high",romance:"high",spectacle:"medium",vibe:"bright"},
+   "Back to the Future":{emotion:"medium",energy:"high",vocal:"medium",dance:"high",world:"fantasy",humor:"high",romance:"medium",spectacle:"medium",vibe:"warm"},
+   "The Notebook":{emotion:"high",energy:"medium",vocal:"high",dance:"low",world:"real",humor:"low",romance:"high",spectacle:"medium",vibe:"warm"},
+   "Some Like It Hot":{emotion:"high",energy:"high",vocal:"medium",dance:"high",world:"fantasy",humor:"high",romance:"medium",spectacle:"high",vibe:"epic"},
+   "New York, New York":{emotion:"medium",energy:"high",vocal:"medium",dance:"high",world:"real",humor:"medium",romance:"medium",spectacle:"medium",vibe:"warm"},
+   "Gutenberg! The Musical!":{emotion:"high",energy:"high",vocal:"medium",dance:"low",world:"real",humor:"high",romance:"medium",spectacle:"medium",vibe:"epic"},
+   "Once Upon a One More Time":{emotion:"high",energy:"high",vocal:"medium",dance:"high",world:"fantasy",humor:"high",romance:"medium",spectacle:"medium",vibe:"warm"},
+   "The Cher Show":{emotion:"high",energy:"high",vocal:"high",dance:"high",world:"real",humor:"medium",romance:"medium",spectacle:"medium",vibe:"warm"},
+   "Tootsie":{emotion:"high",energy:"high",vocal:"medium",dance:"medium",world:"real",humor:"high",romance:"medium",spectacle:"medium",vibe:"bright"},
+   "Ain’t Too Proud":{emotion:"high",energy:"high",vocal:"high",dance:"high",world:"real",humor:"medium",romance:"medium",spectacle:"medium",vibe:"warm"},
+   "A Bronx Tale":{emotion:"high",energy:"high",vocal:"medium",dance:"medium",world:"real",humor:"medium",romance:"medium",spectacle:"medium",vibe:"warm"},
+   "Kiss Me, Kate":{emotion:"high",energy:"high",vocal:"high",dance:"high",world:"real",humor:"high",romance:"high",spectacle:"high",vibe:"epic"},
+   "42nd Street":{emotion:"high",energy:"high",vocal:"medium",dance:"high",world:"real",humor:"medium",romance:"medium",spectacle:"high",vibe:"epic"},
+   "An American in Paris":{emotion:"high",energy:"high",vocal:"high",dance:"high",world:"real",humor:"medium",romance:"high",spectacle:"high",vibe:"epic"},
+   "Big Fish":{emotion:"high",energy:"high",vocal:"medium",dance:"medium",world:"fantasy",humor:"medium",romance:"medium",spectacle:"medium",vibe:"warm"},
+   "Big River":{emotion:"medium",energy:"high",vocal:"medium",dance:"medium",world:"fantasy",humor:"medium",romance:"medium",spectacle:"medium",vibe:"warm"}
+ };
+
+ function closeness(a,b){
+   if(!a||!b)return 0;
+   if(a===b)return 1;
+   const levels={low:0,medium:1,high:2};
+   if(levels[a]!==undefined&&levels[b]!==undefined)return 1-Math.min(2,Math.abs(levels[a]-levels[b]))/2;
+   return 0;
+ }
+ const ranked=shows.map(s=>{
+   const pr=prefs[s.name]||{};
+   let points=50;
+   const weighted=["emotion","energy","vocal","dance","humor","romance","spectacle"];
+   weighted.forEach(k=>{if(answers[k]) points+=closeness(answers[k],pr[k])*5});
+   ["world","vibe"].forEach(k=>{if(answers[k]&&answers[k]===pr[k])points+=8});
+   if(answers.priority==="story"&&["Wicked","Hamilton","Matilda","Hadestown","Les Misérables","Come From Away"].includes(s.name))points+=7;
+   if(answers.priority==="music"&&["Six","Hamilton","Hadestown","Wicked","Waitress"].includes(s.name))points+=7;
+   if(answers.priority==="characters"&&["Wicked","Beetlejuice","The Addams Family","Matilda","Waitress"].includes(s.name))points+=7;
+   if(answers.priority==="spectacle"&&["The Lion King","Aladdin","Beauty and the Beast","Wicked","The Greatest Showman"].includes(s.name))points+=7;
+   if(answers.music==="pop"&&["Six","The Greatest Showman","Mean Girls","Mamma Mia!","Waitress"].includes(s.name))points+=7;
+   if(answers.music==="hiphop"&&["Hamilton","Six"].includes(s.name))points+=9;
+   if(answers.music==="rock"&&["Beetlejuice","Little Shop of Horrors","Waitress"].includes(s.name))points+=7;
+   if(answers.music==="unique"&&["Hadestown","Come From Away","Beetlejuice","Chicago"].includes(s.name))points+=7;
+   if(answers.characters==="young"&&["Matilda","Annie","Mean Girls"].includes(s.name))points+=7;
+   if(answers.characters==="ensemble"&&["Come From Away","Newsies","Hairspray","The Lion King"].includes(s.name))points+=6;
+   if(answers.characters==="lead"&&["Wicked","Hamilton","Dear Evan Hansen","Waitress"].includes(s.name))points+=6;
+   if(answers.purpose==="perform"&&s.vocal==="Advanced")points+=3;
+   return {...s,match:Math.min(99,Math.round(points))};
+ }).sort((a,b)=>b.match-a.match).slice(0,5);
+
+ const top=ranked[0];
+ document.getElementById("results").style.display="block";
+ document.getElementById("results").innerHTML=`
+   <h3>🎉 Your Musical Matches</h3>
+   <p>Your strongest match is <b>${top.name}</b>. Here's how your top 5 stack up:</p>
+   ${ranked.map((s,i)=>`<div class="result-card">
+      <b>${i+1}. ${s.name} — ${s.match}% match</b>
+      <div class="matchbar"><span style="width:${s.match}%"></span></div>
+      <small>${s.summary}</small><br>
+      <small><b>Trade-off:</b> ${s.gain}; you give up ${s.lose}.</small>
+      <br><button class="link-btn" onclick="openByName('${s.name.replace(/'/g,"\\'")}')">View Musical Report →</button>
+   </div>`).join("")}
+   <p class="meta">💾 Log in to save this result and build your personal Musical Profile.</p>`;
+  localStorage.setItem('stageMatchQuiz', JSON.stringify({answers:answers, matches:ranked.map(x=>({name:x.name,match:x.match})), savedAt:new Date().toLocaleDateString()}));
+  updateProfile();
+}
+renderCards();
+console.log("StageMatch catalog loaded:", shows.length, "musicals");
+</script>
+
+<div id="loginModal" class="sm-modal" onclick="if(event.target===this)closeLogin()">
+  <div class="sm-login-box">
+    <button class="sm-close" onclick="closeLogin()">×</button>
+    <div class="pill">STAGEMATCH ACCOUNT</div>
+    <h2>Log in to StageMatch</h2>
+    <p>Save your favorites, quiz results, Want to See list, Seen shows, and private notes.</p>
+    <input id="smLoginName" type="text" placeholder="Enter your display name">
+    <button class="cta" onclick="demoLogin()">Log In →</button>
+    <small>This is a prototype login. A future version can use real secure accounts.</small>
+  </div>
+</div>
+
+
+<script>
+function showLogin(){
+  document.getElementById("loginModal").style.display="flex";
+  setTimeout(()=>document.getElementById("smLoginName").focus(),50);
+}
+function closeLogin(){
+  document.getElementById("loginModal").style.display="none";
+}
+function demoLogin(){
+  const input=document.getElementById("smLoginName");
+  const name=input.value.trim();
+  if(!name){ alert("Please enter a display name."); return; }
+  localStorage.setItem("stageMatchUser",name);
+  const btn=document.getElementById("loginBtn");
+  if(btn) btn.textContent="👤 "+name;
+  closeLogin();
+  alert("Welcome to StageMatch, "+name+"! Your profile is saved in this prototype.");
+}
+document.addEventListener("DOMContentLoaded",()=>{
+  const saved=localStorage.getItem("stageMatchUser");
+  const btn=document.getElementById("loginBtn");
+  if(saved && btn) btn.textContent="👤 "+saved;
+});
+</script>
+
+<style>
+.profile-card{cursor:pointer;transition:transform .15s,box-shadow .15s}.profile-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.08)}.profile-card b span{float:right}.profile-list{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.saved-chip{padding:8px 12px;border:1px solid #ddd;border-radius:999px;background:#fafafa;cursor:pointer}.profile-output-title{margin-top:0}
+</style>
+<script>
+const smKey=k=>'stageMatch_'+k;
+function isLoggedIn(){return !!localStorage.getItem('stageMatchUser')}
+function requireLogin(){if(!isLoggedIn()){showLogin();alert('Log in first to use your personal StageMatch profile.');return false}return true}
+function getList(k){try{return JSON.parse(localStorage.getItem(smKey(k))||'[]')}catch(e){return []}}
+function setList(k,v){localStorage.setItem(smKey(k),JSON.stringify(v));updateProfile()}
+function toggleSaved(type,name){if(!requireLogin())return;let a=getList(type);a=a.includes(name)?a.filter(x=>x!==name):[...a,name];setList(type,a);updateActionButtons(name);}
+function updateActionButtons(name){['favorites','want','seen'].forEach(t=>{const el=document.getElementById(t==='favorites'?'favBtnText':t==='want'?'wantBtnText':'seenBtnText');if(el)el.textContent=getList(t).includes(name)?'Saved ✓':t==='favorites'?'Favorite':t==='want'?'Want to See':'Seen';});}
+function saveNote(name){if(!requireLogin())return;const id='note_'+name.replace(/[^a-zA-Z0-9]/g,'_');const el=document.getElementById(id);if(!el)return;const notes=JSON.parse(localStorage.getItem(smKey('notes'))||'{}');if(el.value.trim())notes[name]=el.value.trim();else delete notes[name];localStorage.setItem(smKey('notes'),JSON.stringify(notes));updateProfile();alert('Your private note was saved!');}
+function updateProfile(){
+ const logged=isLoggedIn();
+ const f=getList('favorites'),w=getList('want'),se=getList('seen');let notes={};try{notes=JSON.parse(localStorage.getItem(smKey('notes'))||'{}')}catch(e){}
+ const ids={favCount:f.length,wantCount:w.length,seenCount:se.length,noteCount:Object.keys(notes).length};Object.keys(ids).forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=ids[id]});
+ const q=document.getElementById('stageMatchQuiz'), qp=document.getElementById('quizPreview');if(qp)qp.textContent=q?'Top match: '+JSON.parse(q).matches[0].name:'No quiz saved yet.';
+ const ps=document.getElementById('profileSummary');if(ps)ps.textContent=logged?`${f.length} favorites • ${w.length} to see • ${se.length} seen`:'Log in and start exploring.';
+ const fp=document.getElementById('favPreview');if(fp)fp.textContent=f.length?f.slice(0,2).join(' • '):'Save shows you love.';
+ const wp=document.getElementById('wantPreview');if(wp)wp.textContent=w.length?w.slice(0,2).join(' • '):'Build your watchlist.';
+ const sp=document.getElementById('seenPreview');if(sp)sp.textContent=se.length?se.slice(0,2).join(' • '):'Track shows you watched or performed.';
+ const np=document.getElementById('notePreview');if(np)np.textContent=Object.keys(notes).length?Object.keys(notes).slice(0,2).join(' • '):'Add notes from any musical report.';
+}
+function showProfileList(type){if(!requireLogin())return;const out=document.getElementById('profileOutput');if(!out)return;let title=type==='favorites'?'⭐ Favorites':type==='want'?'🎟️ Want to See':type==='seen'?'✅ Seen':'📝 Private Notes';let data=getList(type);if(type==='notes'){try{data=Object.keys(JSON.parse(localStorage.getItem(smKey('notes'))||'{}'))}catch(e){data=[]}}out.style.display='block';out.innerHTML=`<h3 class="profile-output-title">${title}</h3>${data.length?'<div class="profile-list">'+data.map(n=>`<button class="saved-chip" onclick="openByName('${n.replace(/'/g,"\\'")}')">${n}</button>`).join('')+'</div>':'<p>Nothing saved here yet. Browse a musical and use the buttons in its report.</p>'}`}
+function showSavedQuiz(){if(!requireLogin())return;const q=JSON.parse(localStorage.getItem('stageMatchQuiz')||'null');const out=document.getElementById('profileOutput');if(!out)return;out.style.display='block';if(!q){out.innerHTML='<h3>🧠 Saved Quiz</h3><p>You have not completed the quiz yet.</p>';return}out.innerHTML='<h3>🧠 Your Saved Quiz</h3><p>Saved '+q.savedAt+'. Your top matches:</p><div class="profile-list">'+q.matches.map(x=>`<button class="saved-chip" onclick="openByName('${x.name.replace(/'/g,"\\'")}')">${x.name} — ${x.match}%</button>`).join('')+'</div>'}
+const oldOpenShow=window.openShow;
+window.openShow=function(i){oldOpenShow(i);setTimeout(()=>{const s=shows[i];updateActionButtons(s.name);const notes=JSON.parse(localStorage.getItem(smKey('notes'))||'{}');const el=document.getElementById('note_'+s.name.replace(/[^a-zA-Z0-9]/g,'_'));if(el&&notes[s.name])el.value=notes[s.name]},0)};
+const oldDemoLogin=window.demoLogin;
+window.demoLogin=function(){oldDemoLogin();setTimeout(updateProfile,50)};
+updateProfile();
+</script>
+</body>
+</html>
